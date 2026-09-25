@@ -17,6 +17,8 @@ import {
   Menu,
   X,
   ShieldAlert,
+  ShieldCheck,
+  Users,
   Target,
 } from "lucide-react";
 import { useAuth } from "@/modules/auth/application/auth-context";
@@ -90,7 +92,20 @@ export function AppShell() {
       tone: "risk",
     },
   ];
-  const admin: NavItem[] = [];
+  const admin: NavItem[] = [
+    {
+      to: "/assessments/users",
+      label: t("app.shell.users"),
+      icon: Users,
+      adminOnly: true,
+    },
+    {
+      to: "/assessments/admin-global",
+      label: t("app.layout.pages.assessmentAdminGlobal"),
+      icon: ShieldCheck,
+      superAdminOnly: true,
+    },
+  ];
 
   const current =
     [...tools, ...admin, ...main].find((i) =>
