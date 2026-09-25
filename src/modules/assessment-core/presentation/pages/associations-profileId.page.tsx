@@ -32,6 +32,8 @@ import {
   Users,
 } from "lucide-react";
 import { createOrganizationalEvaluation } from "@/modules/organizational-tool/infrastructure/organizational-api";
+import { createCapacityEvaluation } from "@/modules/capacity-tool/infrastructure/capacity-api";
+import { createRiskEvaluation } from "@/modules/risk-tool/infrastructure/risk-api";
 import {
   fetchAssessmentAssociationOverview,
   fetchAssessmentProfiles,
@@ -56,6 +58,12 @@ const TOOLS: {
     label: "Organizational",
     titleKey: "app.assessment.organizational.title",
   },
+  {
+    key: "capacity",
+    label: "Capacity",
+    titleKey: "app.assessment.capacity.title",
+  },
+  { key: "risk", label: "Risk", titleKey: "app.assessment.risk.title" },
 ];
 
 function companyAverage(row: AssessmentProfileToolScores): number | null {
@@ -175,11 +183,13 @@ export function AssociationDetailPage() {
     score: AssessmentProfileChildToolScore | null
   ) => {
     if (!score) return;
-    void tool;
-    void navigate({
-      to: "/assessments/organizational/$evaluationId/summary",
-      params: { evaluationId: score.evaluationId },
-    });
+    const to =
+      tool === "organizational"
+        ? "/assessments/organizational/$evaluationId/summary"
+        : tool === "capacity"
+          ? "/assessments/capacity/$evaluationId/summary"
+          : "/assessments/risk/$evaluationId/summary";
+    void navigate({ to, params: { evaluationId: score.evaluationId } });
   };
 
   const handleStartEvaluation = async (
@@ -191,16 +201,24 @@ export function AssociationDetailPage() {
     setStartingKey(key);
     try {
       const refreshedToken = token;
-      const createFn = createOrganizationalEvaluation;
+      const createFn =
+        tool === "organizational"
+          ? createOrganizationalEvaluation
+          : tool === "capacity"
+            ? createCapacityEvaluation
+            : createRiskEvaluation;
       const evaluation = await createFn(
         org,
         { profileId: childProfileId },
         refreshedToken
       );
-      void navigate({
-        to: "/assessments/organizational/$evaluationId",
-        params: { evaluationId: evaluation.id },
-      });
+      const to =
+        tool === "organizational"
+          ? "/assessments/organizational/$evaluationId"
+          : tool === "capacity"
+            ? "/assessments/capacity/$evaluationId"
+            : "/assessments/risk/$evaluationId";
+      void navigate({ to, params: { evaluationId: evaluation.id } });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast({

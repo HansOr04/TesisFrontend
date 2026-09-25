@@ -15,6 +15,8 @@ import {
   LogOut,
   Menu,
   X,
+  ShieldAlert,
+  Target,
 } from "lucide-react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
@@ -68,6 +70,18 @@ export function AppShell() {
       label: t("app.layout.pages.organizationalTool"),
       icon: Building2,
       tone: "organizational",
+    },
+    {
+      to: "/assessments/capacity",
+      label: t("app.layout.pages.capacityTool"),
+      icon: Target,
+      tone: "capacity",
+    },
+    {
+      to: "/assessments/risk",
+      label: t("app.layout.pages.riskTool"),
+      icon: ShieldAlert,
+      tone: "risk",
     },
   ];
   const admin: NavItem[] = [];
