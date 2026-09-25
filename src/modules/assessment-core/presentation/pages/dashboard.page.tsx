@@ -65,8 +65,10 @@ export function AssessmentDashboardPage() {
     evaluationId: string
   ) => {
     void tool;
-    void evaluationId;
-    void navigate({ to: "/assessments" });
+    void navigate({
+      to: "/assessments/organizational/$evaluationId",
+      params: { evaluationId },
+    });
   };
 
   const hasActiveFilters = Object.values(filters).some(
