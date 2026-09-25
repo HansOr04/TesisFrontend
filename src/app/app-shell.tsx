@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import {
   BarChart3,
+  LineChart,
   Building2,
   ChevronDown,
   Globe,
@@ -62,6 +63,11 @@ export function AppShell() {
       to: "/assessments/dashboard",
       label: t("app.layout.pages.assessmentDashboard"),
       icon: BarChart3,
+    },
+    {
+      to: "/assessments/analytics",
+      label: t("app.shell.analytics"),
+      icon: LineChart,
     },
   ];
   const tools: NavItem[] = [

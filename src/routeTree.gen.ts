@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from "./routes/index"
 import { Route as LoggedinAssessmentsIndexRouteImport } from "./routes/_loggedin/assessments/index"
 import { Route as LoggedinAssessmentsNewRouteImport } from "./routes/_loggedin/assessments/new"
 import { Route as LoggedinAssessmentsDashboardRouteImport } from "./routes/_loggedin/assessments/dashboard"
+import { Route as LoggedinAssessmentsAnalyticsRouteImport } from "./routes/_loggedin/assessments/analytics"
 import { Route as LoggedinAssessmentsRiskIndexRouteImport } from "./routes/_loggedin/assessments/risk/index"
 import { Route as LoggedinAssessmentsOrganizationalIndexRouteImport } from "./routes/_loggedin/assessments/organizational/index"
 import { Route as LoggedinAssessmentsCapacityIndexRouteImport } from "./routes/_loggedin/assessments/capacity/index"
@@ -66,6 +67,12 @@ const LoggedinAssessmentsDashboardRoute =
   LoggedinAssessmentsDashboardRouteImport.update({
     id: "/assessments/dashboard",
     path: "/assessments/dashboard",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsAnalyticsRoute =
+  LoggedinAssessmentsAnalyticsRouteImport.update({
+    id: "/assessments/analytics",
+    path: "/assessments/analytics",
     getParentRoute: () => LoggedinRoute,
   } as any)
 const LoggedinAssessmentsRiskIndexRoute =
@@ -204,6 +211,7 @@ const LoggedinAssessmentsCapacityEvaluationIdActionPlanMeasureIdRoute =
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/assessments/": typeof LoggedinAssessmentsIndexRoute
@@ -232,6 +240,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/assessments": typeof LoggedinAssessmentsIndexRoute
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/_loggedin": typeof LoggedinRouteWithChildren
   "/login": typeof LoginRoute
+  "/_loggedin/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/_loggedin/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/_loggedin/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/_loggedin/assessments/": typeof LoggedinAssessmentsIndexRoute
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/login"
+    | "/assessments/analytics"
     | "/assessments/dashboard"
     | "/assessments/new"
     | "/assessments/"
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/login"
+    | "/assessments/analytics"
     | "/assessments/dashboard"
     | "/assessments/new"
     | "/assessments"
@@ -349,6 +361,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_loggedin"
     | "/login"
+    | "/_loggedin/assessments/analytics"
     | "/_loggedin/assessments/dashboard"
     | "/_loggedin/assessments/new"
     | "/_loggedin/assessments/"
@@ -423,6 +436,13 @@ declare module "@tanstack/react-router" {
       path: "/assessments/dashboard"
       fullPath: "/assessments/dashboard"
       preLoaderRoute: typeof LoggedinAssessmentsDashboardRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/analytics": {
+      id: "/_loggedin/assessments/analytics"
+      path: "/assessments/analytics"
+      fullPath: "/assessments/analytics"
+      preLoaderRoute: typeof LoggedinAssessmentsAnalyticsRouteImport
       parentRoute: typeof LoggedinRoute
     }
     "/_loggedin/assessments/risk/": {
@@ -576,6 +596,7 @@ declare module "@tanstack/react-router" {
 }
 
 interface LoggedinRouteChildren {
+  LoggedinAssessmentsAnalyticsRoute: typeof LoggedinAssessmentsAnalyticsRoute
   LoggedinAssessmentsDashboardRoute: typeof LoggedinAssessmentsDashboardRoute
   LoggedinAssessmentsNewRoute: typeof LoggedinAssessmentsNewRoute
   LoggedinAssessmentsIndexRoute: typeof LoggedinAssessmentsIndexRoute
@@ -603,6 +624,7 @@ interface LoggedinRouteChildren {
 }
 
 const LoggedinRouteChildren: LoggedinRouteChildren = {
+  LoggedinAssessmentsAnalyticsRoute: LoggedinAssessmentsAnalyticsRoute,
   LoggedinAssessmentsDashboardRoute: LoggedinAssessmentsDashboardRoute,
   LoggedinAssessmentsNewRoute: LoggedinAssessmentsNewRoute,
   LoggedinAssessmentsIndexRoute: LoggedinAssessmentsIndexRoute,
