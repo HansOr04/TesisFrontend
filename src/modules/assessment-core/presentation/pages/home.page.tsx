@@ -137,10 +137,32 @@ export function AssessmentProfilesPage() {
                       <Button
                         size="sm"
                         className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
-                        onClick={() => void navigate({ to: "/assessments/organizational" })}
+                        onClick={() =>
+                          void navigate({ to: "/assessments/organizational" })
+                        }
                       >
                         <ClipboardCheck className="h-4 w-4" />
                         Organizativa
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-tool-capacity/10 text-tool-capacity shadow-none hover:bg-tool-capacity hover:text-white"
+                        onClick={() =>
+                          void navigate({ to: "/assessments/capacity" })
+                        }
+                      >
+                        <ClipboardCheck className="h-4 w-4" />
+                        Capacidades
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-tool-risk/10 text-tool-risk shadow-none hover:bg-tool-risk hover:text-white"
+                        onClick={() =>
+                          void navigate({ to: "/assessments/risk" })
+                        }
+                      >
+                        <ClipboardCheck className="h-4 w-4" />
+                        Riesgos
                       </Button>
                     </div>
                   </td>

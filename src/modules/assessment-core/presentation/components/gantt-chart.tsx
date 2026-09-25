@@ -1,6 +1,6 @@
 import { SCORE_COLORS } from "@/shared/design/score-colors";
 import { useTranslation } from "@/shared/i18n/i18n";
-import type { AssessmentGanttItem } from "@/modules/assessment-core/infrastructure/assessment-api";
+import type { AssessmentGanttItem } from "@/modules/risk-tool/infrastructure/risk-api";
 
 // Cronograma de mitigación/acción (RF-06, luego rediseñado): barra horizontal por
 // medida, posicionada por CSS (offset%/ancho% dentro del rango total de fechas) —

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ListChecks } from "lucide-react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { fetchOrganizationalTemplates } from "@/modules/organizational-tool/infrastructure/organizational-api";
+import { fetchCapacityTemplates } from "@/modules/capacity-tool/infrastructure/capacity-api";
+import { fetchRiskTemplates } from "@/modules/risk-tool/infrastructure/risk-api";
 import type { AssessmentTemplateData } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { cn } from "@/shared/lib/utils";
 import { useTranslation } from "@/shared/i18n/i18n";
 
-export type ApplicabilityToolKey = "organizational";
+export type ApplicabilityToolKey = "organizational" | "capacity" | "risk";
 
 const TOOLS: {
   key: ApplicabilityToolKey;
@@ -21,6 +23,20 @@ const TOOLS: {
     sectionLabel: "app.assessment.organizational.section",
     color: "#1F9D5B",
     fetch: fetchOrganizationalTemplates,
+  },
+  {
+    key: "capacity",
+    label: "app.analytics.tool.CAPACITY",
+    sectionLabel: "app.assessment.capacity.section",
+    color: "#F28C0F",
+    fetch: fetchCapacityTemplates,
+  },
+  {
+    key: "risk",
+    label: "app.analytics.tool.RISK",
+    sectionLabel: "app.assessment.risk.principle",
+    color: "#1D8FBF",
+    fetch: fetchRiskTemplates,
   },
 ];
 
@@ -57,12 +73,14 @@ export function ApplicabilityEditor({
     if (!org || !token) return;
     let cancelled = false;
     Promise.all(TOOLS.map((t) => t.fetch(org, token)))
-      .then(([o]) => {
+      .then(([o, c, r]) => {
         if (cancelled) return;
         const pick = (list: AssessmentTemplateData[]) =>
           list.find((x) => x.active) ?? list[0] ?? null;
         setTemplates({
           organizational: pick(o),
+          capacity: pick(c),
+          risk: pick(r),
         });
       })
       .catch((err) => console.error("Failed to load templates", err));
@@ -122,7 +140,7 @@ export function ApplicabilityEditor({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {TOOLS.map((t) => (
           <button
             key={t.key}

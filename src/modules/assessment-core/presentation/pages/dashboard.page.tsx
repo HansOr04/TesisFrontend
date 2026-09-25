@@ -64,11 +64,22 @@ export function AssessmentDashboardPage() {
     tool: AssessmentDashboardTool,
     evaluationId: string
   ) => {
-    void tool;
-    void navigate({
-      to: "/assessments/organizational/$evaluationId",
-      params: { evaluationId },
-    });
+    if (tool === "ORGANIZATIONAL") {
+      void navigate({
+        to: "/assessments/organizational/$evaluationId",
+        params: { evaluationId },
+      });
+    } else if (tool === "CAPACITY") {
+      void navigate({
+        to: "/assessments/capacity/$evaluationId",
+        params: { evaluationId },
+      });
+    } else {
+      void navigate({
+        to: "/assessments/risk/$evaluationId",
+        params: { evaluationId },
+      });
+    }
   };
 
   const hasActiveFilters = Object.values(filters).some(
