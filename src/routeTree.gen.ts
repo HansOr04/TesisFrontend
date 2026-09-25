@@ -15,7 +15,14 @@ import { Route as IndexRouteImport } from "./routes/index"
 import { Route as LoggedinAssessmentsIndexRouteImport } from "./routes/_loggedin/assessments/index"
 import { Route as LoggedinAssessmentsNewRouteImport } from "./routes/_loggedin/assessments/new"
 import { Route as LoggedinAssessmentsDashboardRouteImport } from "./routes/_loggedin/assessments/dashboard"
+import { Route as LoggedinAssessmentsOrganizationalIndexRouteImport } from "./routes/_loggedin/assessments/organizational/index"
+import { Route as LoggedinAssessmentsOrganizationalAdminRouteImport } from "./routes/_loggedin/assessments/organizational/admin"
 import { Route as LoggedinAssessmentsAssociationsProfileIdRouteImport } from "./routes/_loggedin/assessments/associations/$profileId"
+import { Route as LoggedinAssessmentsOrganizationalEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/index"
+import { Route as LoggedinAssessmentsOrganizationalEvaluationIdSummaryRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/summary"
+import { Route as LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/action-plan/index"
+import { Route as LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/dimension/$number"
+import { Route as LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/action-plan/$measureId"
 
 const LoginRoute = LoginRouteImport.update({
   id: "/login",
@@ -48,12 +55,60 @@ const LoggedinAssessmentsDashboardRoute =
     path: "/assessments/dashboard",
     getParentRoute: () => LoggedinRoute,
   } as any)
+const LoggedinAssessmentsOrganizationalIndexRoute =
+  LoggedinAssessmentsOrganizationalIndexRouteImport.update({
+    id: "/assessments/organizational/",
+    path: "/assessments/organizational/",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsOrganizationalAdminRoute =
+  LoggedinAssessmentsOrganizationalAdminRouteImport.update({
+    id: "/assessments/organizational/admin",
+    path: "/assessments/organizational/admin",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
 const LoggedinAssessmentsAssociationsProfileIdRoute =
   LoggedinAssessmentsAssociationsProfileIdRouteImport.update({
     id: "/assessments/associations/$profileId",
     path: "/assessments/associations/$profileId",
     getParentRoute: () => LoggedinRoute,
   } as any)
+const LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute =
+  LoggedinAssessmentsOrganizationalEvaluationIdIndexRouteImport.update({
+    id: "/assessments/organizational/$evaluationId/",
+    path: "/assessments/organizational/$evaluationId/",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute =
+  LoggedinAssessmentsOrganizationalEvaluationIdSummaryRouteImport.update({
+    id: "/assessments/organizational/$evaluationId/summary",
+    path: "/assessments/organizational/$evaluationId/summary",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute =
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRouteImport.update(
+    {
+      id: "/assessments/organizational/$evaluationId/action-plan/",
+      path: "/assessments/organizational/$evaluationId/action-plan/",
+      getParentRoute: () => LoggedinRoute,
+    } as any,
+  )
+const LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute =
+  LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRouteImport.update(
+    {
+      id: "/assessments/organizational/$evaluationId/dimension/$number",
+      path: "/assessments/organizational/$evaluationId/dimension/$number",
+      getParentRoute: () => LoggedinRoute,
+    } as any,
+  )
+const LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute =
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRouteImport.update(
+    {
+      id: "/assessments/organizational/$evaluationId/action-plan/$measureId",
+      path: "/assessments/organizational/$evaluationId/action-plan/$measureId",
+      getParentRoute: () => LoggedinRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
@@ -62,6 +117,13 @@ export interface FileRoutesByFullPath {
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/assessments/": typeof LoggedinAssessmentsIndexRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
+  "/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
+  "/assessments/organizational/": typeof LoggedinAssessmentsOrganizationalIndexRoute
+  "/assessments/organizational/$evaluationId/summary": typeof LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute
+  "/assessments/organizational/$evaluationId/": typeof LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute
+  "/assessments/organizational/$evaluationId/action-plan/$measureId": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute
+  "/assessments/organizational/$evaluationId/dimension/$number": typeof LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute
+  "/assessments/organizational/$evaluationId/action-plan/": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -70,6 +132,13 @@ export interface FileRoutesByTo {
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/assessments": typeof LoggedinAssessmentsIndexRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
+  "/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
+  "/assessments/organizational": typeof LoggedinAssessmentsOrganizationalIndexRoute
+  "/assessments/organizational/$evaluationId/summary": typeof LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute
+  "/assessments/organizational/$evaluationId": typeof LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute
+  "/assessments/organizational/$evaluationId/action-plan/$measureId": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute
+  "/assessments/organizational/$evaluationId/dimension/$number": typeof LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute
+  "/assessments/organizational/$evaluationId/action-plan": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +149,13 @@ export interface FileRoutesById {
   "/_loggedin/assessments/new": typeof LoggedinAssessmentsNewRoute
   "/_loggedin/assessments/": typeof LoggedinAssessmentsIndexRoute
   "/_loggedin/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
+  "/_loggedin/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
+  "/_loggedin/assessments/organizational/": typeof LoggedinAssessmentsOrganizationalIndexRoute
+  "/_loggedin/assessments/organizational/$evaluationId/summary": typeof LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute
+  "/_loggedin/assessments/organizational/$evaluationId/": typeof LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute
+  "/_loggedin/assessments/organizational/$evaluationId/action-plan/$measureId": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute
+  "/_loggedin/assessments/organizational/$evaluationId/dimension/$number": typeof LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute
+  "/_loggedin/assessments/organizational/$evaluationId/action-plan/": typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,6 +166,13 @@ export interface FileRouteTypes {
     | "/assessments/new"
     | "/assessments/"
     | "/assessments/associations/$profileId"
+    | "/assessments/organizational/admin"
+    | "/assessments/organizational/"
+    | "/assessments/organizational/$evaluationId/summary"
+    | "/assessments/organizational/$evaluationId/"
+    | "/assessments/organizational/$evaluationId/action-plan/$measureId"
+    | "/assessments/organizational/$evaluationId/dimension/$number"
+    | "/assessments/organizational/$evaluationId/action-plan/"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -98,6 +181,13 @@ export interface FileRouteTypes {
     | "/assessments/new"
     | "/assessments"
     | "/assessments/associations/$profileId"
+    | "/assessments/organizational/admin"
+    | "/assessments/organizational"
+    | "/assessments/organizational/$evaluationId/summary"
+    | "/assessments/organizational/$evaluationId"
+    | "/assessments/organizational/$evaluationId/action-plan/$measureId"
+    | "/assessments/organizational/$evaluationId/dimension/$number"
+    | "/assessments/organizational/$evaluationId/action-plan"
   id:
     | "__root__"
     | "/"
@@ -107,6 +197,13 @@ export interface FileRouteTypes {
     | "/_loggedin/assessments/new"
     | "/_loggedin/assessments/"
     | "/_loggedin/assessments/associations/$profileId"
+    | "/_loggedin/assessments/organizational/admin"
+    | "/_loggedin/assessments/organizational/"
+    | "/_loggedin/assessments/organizational/$evaluationId/summary"
+    | "/_loggedin/assessments/organizational/$evaluationId/"
+    | "/_loggedin/assessments/organizational/$evaluationId/action-plan/$measureId"
+    | "/_loggedin/assessments/organizational/$evaluationId/dimension/$number"
+    | "/_loggedin/assessments/organizational/$evaluationId/action-plan/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -159,11 +256,60 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoggedinAssessmentsDashboardRouteImport
       parentRoute: typeof LoggedinRoute
     }
+    "/_loggedin/assessments/organizational/": {
+      id: "/_loggedin/assessments/organizational/"
+      path: "/assessments/organizational"
+      fullPath: "/assessments/organizational/"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalIndexRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/admin": {
+      id: "/_loggedin/assessments/organizational/admin"
+      path: "/assessments/organizational/admin"
+      fullPath: "/assessments/organizational/admin"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalAdminRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
     "/_loggedin/assessments/associations/$profileId": {
       id: "/_loggedin/assessments/associations/$profileId"
       path: "/assessments/associations/$profileId"
       fullPath: "/assessments/associations/$profileId"
       preLoaderRoute: typeof LoggedinAssessmentsAssociationsProfileIdRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/$evaluationId/": {
+      id: "/_loggedin/assessments/organizational/$evaluationId/"
+      path: "/assessments/organizational/$evaluationId"
+      fullPath: "/assessments/organizational/$evaluationId/"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdIndexRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/$evaluationId/summary": {
+      id: "/_loggedin/assessments/organizational/$evaluationId/summary"
+      path: "/assessments/organizational/$evaluationId/summary"
+      fullPath: "/assessments/organizational/$evaluationId/summary"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdSummaryRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/$evaluationId/action-plan/": {
+      id: "/_loggedin/assessments/organizational/$evaluationId/action-plan/"
+      path: "/assessments/organizational/$evaluationId/action-plan"
+      fullPath: "/assessments/organizational/$evaluationId/action-plan/"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/$evaluationId/dimension/$number": {
+      id: "/_loggedin/assessments/organizational/$evaluationId/dimension/$number"
+      path: "/assessments/organizational/$evaluationId/dimension/$number"
+      fullPath: "/assessments/organizational/$evaluationId/dimension/$number"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organizational/$evaluationId/action-plan/$measureId": {
+      id: "/_loggedin/assessments/organizational/$evaluationId/action-plan/$measureId"
+      path: "/assessments/organizational/$evaluationId/action-plan/$measureId"
+      fullPath: "/assessments/organizational/$evaluationId/action-plan/$measureId"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRouteImport
       parentRoute: typeof LoggedinRoute
     }
   }
@@ -174,6 +320,13 @@ interface LoggedinRouteChildren {
   LoggedinAssessmentsNewRoute: typeof LoggedinAssessmentsNewRoute
   LoggedinAssessmentsIndexRoute: typeof LoggedinAssessmentsIndexRoute
   LoggedinAssessmentsAssociationsProfileIdRoute: typeof LoggedinAssessmentsAssociationsProfileIdRoute
+  LoggedinAssessmentsOrganizationalAdminRoute: typeof LoggedinAssessmentsOrganizationalAdminRoute
+  LoggedinAssessmentsOrganizationalIndexRoute: typeof LoggedinAssessmentsOrganizationalIndexRoute
+  LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute
+  LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute
+  LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute: typeof LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute
 }
 
 const LoggedinRouteChildren: LoggedinRouteChildren = {
@@ -182,6 +335,20 @@ const LoggedinRouteChildren: LoggedinRouteChildren = {
   LoggedinAssessmentsIndexRoute: LoggedinAssessmentsIndexRoute,
   LoggedinAssessmentsAssociationsProfileIdRoute:
     LoggedinAssessmentsAssociationsProfileIdRoute,
+  LoggedinAssessmentsOrganizationalAdminRoute:
+    LoggedinAssessmentsOrganizationalAdminRoute,
+  LoggedinAssessmentsOrganizationalIndexRoute:
+    LoggedinAssessmentsOrganizationalIndexRoute,
+  LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute:
+    LoggedinAssessmentsOrganizationalEvaluationIdSummaryRoute,
+  LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute:
+    LoggedinAssessmentsOrganizationalEvaluationIdIndexRoute,
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute:
+    LoggedinAssessmentsOrganizationalEvaluationIdActionPlanMeasureIdRoute,
+  LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute:
+    LoggedinAssessmentsOrganizationalEvaluationIdDimensionNumberRoute,
+  LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute:
+    LoggedinAssessmentsOrganizationalEvaluationIdActionPlanIndexRoute,
 }
 
 const LoggedinRouteWithChildren = LoggedinRoute._addFileChildren(

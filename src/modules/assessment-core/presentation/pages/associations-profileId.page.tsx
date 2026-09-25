@@ -176,7 +176,10 @@ export function AssociationDetailPage() {
   ) => {
     if (!score) return;
     void tool;
-    void navigate({ to: "/assessments" });
+    void navigate({
+      to: "/assessments/organizational/$evaluationId/summary",
+      params: { evaluationId: score.evaluationId },
+    });
   };
 
   const handleStartEvaluation = async (
@@ -189,8 +192,15 @@ export function AssociationDetailPage() {
     try {
       const refreshedToken = token;
       const createFn = createOrganizationalEvaluation;
-      await createFn(org, { profileId: childProfileId }, refreshedToken);
-      void navigate({ to: "/assessments" });
+      const evaluation = await createFn(
+        org,
+        { profileId: childProfileId },
+        refreshedToken
+      );
+      void navigate({
+        to: "/assessments/organizational/$evaluationId",
+        params: { evaluationId: evaluation.id },
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast({
@@ -334,7 +344,7 @@ export function AssociationDetailPage() {
             variant="ghost"
             size="icon"
             aria-label={t("app.common.back")}
-            onClick={() => void navigate({ to: "/assessments" })}
+            onClick={() => void navigate({ to: "/assessments/organizational" })}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

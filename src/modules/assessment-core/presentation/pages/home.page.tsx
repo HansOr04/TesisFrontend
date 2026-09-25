@@ -137,7 +137,7 @@ export function AssessmentProfilesPage() {
                       <Button
                         size="sm"
                         className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
-                        onClick={() => void navigate({ to: "/assessments" })}
+                        onClick={() => void navigate({ to: "/assessments/organizational" })}
                       >
                         <ClipboardCheck className="h-4 w-4" />
                         Organizativa

@@ -386,7 +386,7 @@ export function NewAssessmentOrganisationPage() {
         description: t("app.assessment.profiles.newProfile"),
         variant: "success",
       });
-      void navigate({ to: "/assessments" });
+      void navigate({ to: "/assessments/organizational" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast({
