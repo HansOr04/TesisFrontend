@@ -39,7 +39,7 @@ export function AppErrorPage({
             <RotateCcw className="h-4 w-4" /> {t("app.errors.retry")}
           </Button>
           <Button asChild>
-            <Link to="/login">{t("app.errors.home")}</Link>
+            <Link to="/assessments">{t("app.errors.home")}</Link>
           </Button>
         </div>
       </div>
@@ -62,7 +62,7 @@ export function NotFoundPage() {
           {t("app.errors.notFoundDescription")}
         </p>
         <Button className="mt-6" asChild>
-          <Link to="/login">{t("app.errors.home")}</Link>
+          <Link to="/assessments">{t("app.errors.home")}</Link>
         </Button>
       </div>
     </div>

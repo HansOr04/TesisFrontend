@@ -42,7 +42,7 @@ export function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (auth.status === "authenticated") void navigate({ to: "/login" });
+    if (auth.status === "authenticated") void navigate({ to: "/assessments" });
   }, [auth.status, navigate]);
 
   const handleSubmit = async (event: React.FormEvent) => {

@@ -10,11 +10,20 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as LoginRouteImport } from "./routes/login"
+import { Route as LoggedinRouteImport } from "./routes/_loggedin"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as LoggedinAssessmentsIndexRouteImport } from "./routes/_loggedin/assessments/index"
+import { Route as LoggedinAssessmentsNewRouteImport } from "./routes/_loggedin/assessments/new"
+import { Route as LoggedinAssessmentsDashboardRouteImport } from "./routes/_loggedin/assessments/dashboard"
+import { Route as LoggedinAssessmentsAssociationsProfileIdRouteImport } from "./routes/_loggedin/assessments/associations/$profileId"
 
 const LoginRoute = LoginRouteImport.update({
   id: "/login",
   path: "/login",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoggedinRoute = LoggedinRouteImport.update({
+  id: "/_loggedin",
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +31,87 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoggedinAssessmentsIndexRoute =
+  LoggedinAssessmentsIndexRouteImport.update({
+    id: "/assessments/",
+    path: "/assessments/",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsNewRoute = LoggedinAssessmentsNewRouteImport.update({
+  id: "/assessments/new",
+  path: "/assessments/new",
+  getParentRoute: () => LoggedinRoute,
+} as any)
+const LoggedinAssessmentsDashboardRoute =
+  LoggedinAssessmentsDashboardRouteImport.update({
+    id: "/assessments/dashboard",
+    path: "/assessments/dashboard",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsAssociationsProfileIdRoute =
+  LoggedinAssessmentsAssociationsProfileIdRouteImport.update({
+    id: "/assessments/associations/$profileId",
+    path: "/assessments/associations/$profileId",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
+  "/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/login": typeof LoginRoute
+  "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
+  "/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/assessments": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
+  "/_loggedin": typeof LoggedinRouteWithChildren
   "/login": typeof LoginRoute
+  "/_loggedin/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
+  "/_loggedin/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/_loggedin/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/_loggedin/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/login"
+  fullPaths:
+    | "/"
+    | "/login"
+    | "/assessments/dashboard"
+    | "/assessments/new"
+    | "/assessments/"
+    | "/assessments/associations/$profileId"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/login"
-  id: "__root__" | "/" | "/login"
+  to:
+    | "/"
+    | "/login"
+    | "/assessments/dashboard"
+    | "/assessments/new"
+    | "/assessments"
+    | "/assessments/associations/$profileId"
+  id:
+    | "__root__"
+    | "/"
+    | "/_loggedin"
+    | "/login"
+    | "/_loggedin/assessments/dashboard"
+    | "/_loggedin/assessments/new"
+    | "/_loggedin/assessments/"
+    | "/_loggedin/assessments/associations/$profileId"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoggedinRoute: typeof LoggedinRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -58,6 +124,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_loggedin": {
+      id: "/_loggedin"
+      path: ""
+      fullPath: "/"
+      preLoaderRoute: typeof LoggedinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/": {
       id: "/"
       path: "/"
@@ -65,11 +138,59 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_loggedin/assessments/": {
+      id: "/_loggedin/assessments/"
+      path: "/assessments"
+      fullPath: "/assessments/"
+      preLoaderRoute: typeof LoggedinAssessmentsIndexRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/new": {
+      id: "/_loggedin/assessments/new"
+      path: "/assessments/new"
+      fullPath: "/assessments/new"
+      preLoaderRoute: typeof LoggedinAssessmentsNewRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/dashboard": {
+      id: "/_loggedin/assessments/dashboard"
+      path: "/assessments/dashboard"
+      fullPath: "/assessments/dashboard"
+      preLoaderRoute: typeof LoggedinAssessmentsDashboardRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/associations/$profileId": {
+      id: "/_loggedin/assessments/associations/$profileId"
+      path: "/assessments/associations/$profileId"
+      fullPath: "/assessments/associations/$profileId"
+      preLoaderRoute: typeof LoggedinAssessmentsAssociationsProfileIdRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
   }
 }
 
+interface LoggedinRouteChildren {
+  LoggedinAssessmentsDashboardRoute: typeof LoggedinAssessmentsDashboardRoute
+  LoggedinAssessmentsNewRoute: typeof LoggedinAssessmentsNewRoute
+  LoggedinAssessmentsIndexRoute: typeof LoggedinAssessmentsIndexRoute
+  LoggedinAssessmentsAssociationsProfileIdRoute: typeof LoggedinAssessmentsAssociationsProfileIdRoute
+}
+
+const LoggedinRouteChildren: LoggedinRouteChildren = {
+  LoggedinAssessmentsDashboardRoute: LoggedinAssessmentsDashboardRoute,
+  LoggedinAssessmentsNewRoute: LoggedinAssessmentsNewRoute,
+  LoggedinAssessmentsIndexRoute: LoggedinAssessmentsIndexRoute,
+  LoggedinAssessmentsAssociationsProfileIdRoute:
+    LoggedinAssessmentsAssociationsProfileIdRoute,
+}
+
+const LoggedinRouteWithChildren = LoggedinRoute._addFileChildren(
+  LoggedinRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoggedinRoute: LoggedinRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
