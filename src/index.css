@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   Sistema de diseño — Plataforma de Evaluación Organizacional
+   Tokens HSL (sin "hsl()" para permitir opacidad con Tailwind).
+   ───────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 150 25% 97%;
+    --foreground: 160 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 20% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 20% 12%;
+
+    /* marca: verde esmeralda → teal */
+    --brand: 158 64% 38%;
+    --brand-foreground: 0 0% 100%;
+    --brand-deep: 161 70% 27%;
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+
+    /* acento: teal/cian */
+    --accent-brand: 186 72% 38%;
+    --secondary: 150 22% 93%;
+    --secondary-foreground: 160 20% 18%;
+    --muted: 150 20% 93%;
+    --muted-foreground: 160 8% 44%;
+    --accent: 156 45% 95%;
+    --accent-foreground: 161 70% 27%;
+
+    /* semánticos de puntaje: 0–5 crítico, 5–7 medio, 7–10 alto */
+    --danger: 0 72% 55%;
+    --warning: 32 95% 50%;
+    --success: 142 62% 40%;
+    --destructive: var(--danger);
+    --destructive-foreground: 0 0% 100%;
+
+    /* identidad por herramienta */
+    --tool-organizational: 158 64% 38%;
+    --tool-capacity: 30 94% 50%;
+    --tool-risk: 199 80% 40%;
+
+    --border: 150 18% 89%;
+    --input: 150 18% 86%;
+    --ring: 158 64% 38%;
+    --radius: 0.875rem;
+
+    --shadow-card: 0 1px 2px rgba(16, 40, 30, 0.04), 0 8px 24px -12px rgba(16, 40, 30, 0.12);
+    --shadow-card-hover: 0 2px 4px rgba(16, 40, 30, 0.05), 0 16px 32px -12px rgba(16, 122, 87, 0.22);
+
+    /* variables planas para estilos inline heredados (style={{ color }}) */
+    --color-brand: hsl(var(--brand));
+    --color-brand-deep: hsl(var(--brand-deep));
+    --color-accent: hsl(var(--accent-brand));
+    --color-danger: hsl(var(--danger));
+    --color-warning: hsl(var(--warning));
+    --color-success: hsl(var(--success));
+    --color-track: hsl(var(--muted));
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1, h2, h3, h4 { @apply tracking-tight; }
+  ::selection { background: hsl(var(--brand) / 0.18); }
+
+  /* Foco visible por teclado en todo elemento interactivo (botones "crudos",
+     enlaces, tarjetas-botón, pestañas), no solo en el componente Button. */
+  :where(a, button, [role="button"], [role="tab"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid hsl(var(--brand));
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+  /* Respeta la preferencia de menos movimiento */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* superficie elevada estándar (Card la usa) */
+  .surface {
+    @apply bg-card rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+  .surface-hover { transition: box-shadow .2s ease, transform .2s ease; }
+  .surface-hover:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-1px); }
+
+  /* texto con degradado de marca */
+  .text-gradient-brand {
+    background: linear-gradient(90deg, hsl(var(--brand)) 0%, hsl(var(--accent-brand)) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gradient-brand {
+    background: linear-gradient(135deg, hsl(var(--brand)) 0%, hsl(var(--brand-deep)) 55%, hsl(196 70% 28%) 100%);
+  }
+  .bg-sidebar {
+    background: linear-gradient(180deg, hsl(163 38% 10%) 0%, hsl(170 34% 14%) 100%);
+  }
+  /* tablas */
+  thead { @apply text-[11px] uppercase tracking-wider text-muted-foreground; }
+  tbody tr { @apply transition-colors; }
+  tbody tr:hover { background: hsl(var(--brand) / 0.035); }
+
+  /* scrollbars discretos */
+  * { scrollbar-width: thin; scrollbar-color: hsl(var(--border)) transparent; }
+}
