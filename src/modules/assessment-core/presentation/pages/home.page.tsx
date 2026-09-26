@@ -13,6 +13,7 @@ import {
   ClipboardCheck,
   UserCog,
   Lock,
+  Pencil,
   SlidersHorizontal,
   ChevronRight,
   Users,
@@ -178,15 +179,27 @@ export function AssessmentProfilesPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            title={t("app.assessment.wizard.edit")}
+                            onClick={() =>
+                              void navigate({
+                                to: "/assessments/$profileId/edit",
+                                params: { profileId: p.id },
+                              })
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                            {t("app.assessment.wizard.edit")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             title={t(
                               "app.assessment.profiles.assignEvaluatorTitle"
                             )}
                             onClick={() => setAssigningProfile(p)}
                           >
                             <UserCog className="h-4 w-4" />
-                            {t(
-                              "app.assessment.profiles.assignEvaluatorAction"
-                            )}
+                            {t("app.assessment.profiles.assignEvaluatorAction")}
                           </Button>
                           <Button
                             variant="outline"
@@ -197,7 +210,7 @@ export function AssessmentProfilesPage() {
                             onClick={() => setApplicabilityProfile(p)}
                           >
                             <SlidersHorizontal className="h-4 w-4" />
-                            KPI aplicables
+                            {t("app.assessment.profiles.applicabilityAction")}
                           </Button>
                           <Button
                             size="sm"
@@ -273,6 +286,20 @@ export function AssessmentProfilesPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                title={t("app.assessment.wizard.edit")}
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/$profileId/edit",
+                                    params: { profileId: child.id },
+                                  })
+                                }
+                              >
+                                <Pencil className="h-4 w-4" />
+                                {t("app.assessment.wizard.edit")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 title={t(
                                   "app.assessment.profiles.assignEvaluatorTitle"
                                 )}
@@ -292,7 +319,9 @@ export function AssessmentProfilesPage() {
                                 onClick={() => setApplicabilityProfile(child)}
                               >
                                 <SlidersHorizontal className="h-4 w-4" />
-                                KPI aplicables
+                                {t(
+                                  "app.assessment.profiles.applicabilityAction"
+                                )}
                               </Button>
                               <Button
                                 size="sm"

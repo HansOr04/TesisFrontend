@@ -113,6 +113,12 @@ function AppShellInner() {
       adminOnly: true,
     },
     {
+      to: "/assessments/organisations",
+      label: t("app.organisations.title"),
+      icon: Globe,
+      superAdminOnly: true,
+    },
+    {
       to: "/assessments/admin-global",
       label: t("app.layout.pages.assessmentAdminGlobal"),
       icon: ShieldCheck,

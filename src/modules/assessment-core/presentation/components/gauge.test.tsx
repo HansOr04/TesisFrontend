@@ -1,7 +1,7 @@
 import { SCORE_COLORS } from "@/shared/design/score-colors";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Gauge, gaugeColor } from "./gauge";
+import { GAUGE_YELLOW, Gauge, gaugeColor } from "./gauge";
 
 describe("Gauge (FE3-B04)", () => {
   it("renders the value rounded to one decimal", () => {
@@ -21,7 +21,7 @@ describe("Gauge (FE3-B04)", () => {
     });
 
     it("is yellow between 5 (exclusive) and 7 (exclusive)", () => {
-      expect(gaugeColor(6.9)).toBe(SCORE_COLORS.medium);
+      expect(gaugeColor(6.9)).toBe(GAUGE_YELLOW);
     });
 
     it("is green at 7 and above", () => {
