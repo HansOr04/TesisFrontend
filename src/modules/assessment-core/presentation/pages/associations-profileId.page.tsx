@@ -5,6 +5,7 @@ import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
 import { PageTitle } from "@/shared/components/page-title";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import {
@@ -147,6 +148,7 @@ export function AssociationDetailPage() {
   const [overview, setOverview] =
     useState<AssessmentAssociationOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  useSetPageHeaderName(overview?.profile.name);
 
   const [showAddExisting, setShowAddExisting] = useState(false);
   const [candidates, setCandidates] = useState<AssessmentOrganisationProfile[]>(

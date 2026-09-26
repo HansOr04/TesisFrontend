@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
@@ -57,6 +58,7 @@ export function RiskEvaluationDetailPage() {
   const [evaluation, setEvaluation] = useState<AssessmentEvaluationData | null>(
     null
   );
+  useSetPageHeaderName(evaluation?.profile.name);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<Record<string, DraftResponseRisk>>({});
   const [savedDraft, setSavedDraft] = useState<
