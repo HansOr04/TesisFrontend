@@ -19,8 +19,11 @@ import {
 import { ChevronRight, X } from "lucide-react";
 import {
   createAssessmentProfile,
+  updateAssessmentProfile,
   setProfileApplicability,
+  fetchAssessmentProfile,
   fetchAssessmentProfiles,
+  fetchProfileApplicability,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { ApplicabilityEditor } from "@/modules/assessment-core/presentation/components/applicability-editor";
 import type {
@@ -120,7 +123,11 @@ function TagInput({
           if (e.key === "Enter") {
             e.preventDefault();
             commitDraft();
-          } else if (e.key === "Backspace" && draft === "" && value.length > 0) {
+          } else if (
+            e.key === "Backspace" &&
+            draft === "" &&
+            value.length > 0
+          ) {
             onChange(value.slice(0, -1));
           }
         }}
@@ -169,16 +176,22 @@ function Stepper({ current }: { current: number }) {
   );
 }
 
-export function NewAssessmentOrganisationPage() {
+// El mismo asistente sirve para dar de alta y para corregir después lo que
+// se capturó: con `profileId` arranca en modo edición, precargado.
+export function AssessmentProfileWizardPage({
+  profileId,
+}: { profileId?: string } = {}) {
   const auth = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate({ from: "/assessments/new" });
 
   const org = auth.organisations?.current;
   const token = auth.currentUser?.accessToken;
+  const isEdit = Boolean(profileId);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(Boolean(profileId));
 
   const [type, setType] = useState<AssessmentProfileType>("ASSOCIATION");
   const [associationLevel, setAssociationLevel] =
@@ -259,7 +272,10 @@ export function NewAssessmentOrganisationPage() {
         if (cancelled) return;
         setAssociations(
           profiles.filter(
-            (p) => p.type === "ASSOCIATION" && p.associationLevel === "LEVEL_2"
+            (p) =>
+              p.type === "ASSOCIATION" &&
+              p.associationLevel === "LEVEL_2" &&
+              p.id !== profileId
           )
         );
       } catch (err: unknown) {
@@ -269,11 +285,65 @@ export function NewAssessmentOrganisationPage() {
     return () => {
       cancelled = true;
     };
-  }, [org, token]);
+  }, [org, token, profileId]);
 
   useEffect(() => {
     if (isLevel2Association) setParentProfileId("");
   }, [isLevel2Association]);
+
+  // Modo edición: se cargan el perfil y su aplicabilidad antes de mostrar
+  // nada, para que el asistente arranque con lo que se guardó en el alta.
+  useEffect(() => {
+    if (!org || !profileId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [profile, applicability] = await Promise.all([
+          fetchAssessmentProfile(org, profileId),
+          fetchProfileApplicability(org, profileId),
+        ]);
+        if (cancelled) return;
+        setType(profile.type);
+        setAssociationLevel(profile.associationLevel ?? "LEVEL_1");
+        setParentProfileId(profile.parentProfileId ?? "");
+        setName(profile.name);
+        setTradeName(profile.tradeName ?? "");
+        setCountry(profile.country);
+        setYearStarted(profile.yearStarted ? String(profile.yearStarted) : "");
+        setMemberCount(profile.memberCount ? String(profile.memberCount) : "");
+        setContactPhone(profile.contactPhone ?? "");
+        setContactEmail(profile.contactEmail ?? "");
+        setMainActivity(profile.mainActivity ?? "");
+        setMainProduct(profile.mainProduct);
+        setSecondaryProducts(profile.secondaryProducts ?? "");
+        setCertifications(
+          profile.certifications
+            ? profile.certifications
+                .split(",")
+                .map((c) => c.trim())
+                .filter((c) => c.length > 0)
+            : []
+        );
+        setMainMarkets(profile.mainMarkets ?? "");
+        setExcludedSectionIds(new Set(applicability.excludedSectionIds));
+        setExcludedIndicatorIds(new Set(applicability.excludedIndicatorIds));
+      } catch (err: unknown) {
+        toast({
+          title: t("app.common.error"),
+          description:
+            err instanceof Error
+              ? err.message
+              : t("app.assessment.wizard.loadFailed"),
+          variant: "destructive",
+        });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [org, profileId, t]);
 
   const handleCountryChange = (code: string) => {
     setCountry(code);
@@ -341,8 +411,15 @@ export function NewAssessmentOrganisationPage() {
         mainMarkets: mainMarkets || undefined,
         parentProfileId: effectiveParentId,
       };
-      const profile = await createAssessmentProfile(org, data, refreshedToken);
-      if (excludedSectionIds.size > 0 || excludedIndicatorIds.size > 0) {
+      const profile = profileId
+        ? await updateAssessmentProfile(org, profileId, data, refreshedToken)
+        : await createAssessmentProfile(org, data, refreshedToken);
+      // En edición se envía siempre, para que quitar exclusiones persista.
+      if (
+        isEdit ||
+        excludedSectionIds.size > 0 ||
+        excludedIndicatorIds.size > 0
+      ) {
         await setProfileApplicability(
           org,
           profile.id,
@@ -352,6 +429,16 @@ export function NewAssessmentOrganisationPage() {
           },
           refreshedToken
         );
+      }
+
+      if (isEdit) {
+        toast({
+          title: t("app.common.success"),
+          description: t("app.assessment.wizard.updated"),
+          variant: "success",
+        });
+        void navigate({ to: "/assessments" });
+        return;
       }
 
       // Asociación Nivel 2 recién creada con miembros pendientes: en vez de
@@ -428,14 +515,29 @@ export function NewAssessmentOrganisationPage() {
     (step === 3 && !step3Valid) ||
     saving;
 
-  const saveLabel =
-    childCreation && childCreation.completed + 1 < childCreation.total
+  const saveLabel = isEdit
+    ? t("app.assessment.wizard.saveChanges")
+    : childCreation && childCreation.completed + 1 < childCreation.total
       ? t("app.assessment.wizard.saveAndCreateNext")
       : t("app.assessment.organizational.save");
 
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-3xl py-12 text-center text-sm text-muted-foreground">
+        {t("app.assessment.wizard.loading")}
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6 max-w-3xl">
-      <PageTitle rawTitle={t("app.assessment.profiles.newProfile")} />
+      <PageTitle
+        rawTitle={
+          isEdit
+            ? t("app.assessment.wizard.editTitle", { name })
+            : t("app.assessment.profiles.newProfile")
+        }
+      />
       <p className="text-sm text-muted-foreground">
         {step === 1
           ? t("app.assessment.wizard.step1Subtitle")
@@ -523,31 +625,35 @@ export function NewAssessmentOrganisationPage() {
               </div>
             )}
 
-            {!isLevel2Association && !childCreation && associations.length > 0 && (
-              <div className="pt-2">
-                <Label>{t("app.assessment.wizard.belongsToAssociation")}</Label>
-                <Select
-                  value={parentProfileId || "none"}
-                  onValueChange={(v) => {
-                    setParentProfileId(v === "none" ? "" : v);
-                  }}
-                >
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">
-                      {t("app.assessment.wizard.noAssociation")}
-                    </SelectItem>
-                    {associations.map((assoc) => (
-                      <SelectItem key={assoc.id} value={assoc.id}>
-                        {assoc.name}
+            {!isLevel2Association &&
+              !childCreation &&
+              associations.length > 0 && (
+                <div className="pt-2">
+                  <Label>
+                    {t("app.assessment.wizard.belongsToAssociation")}
+                  </Label>
+                  <Select
+                    value={parentProfileId || "none"}
+                    onValueChange={(v) => {
+                      setParentProfileId(v === "none" ? "" : v);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        {t("app.assessment.wizard.noAssociation")}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                      {associations.map((assoc) => (
+                        <SelectItem key={assoc.id} value={assoc.id}>
+                          {assoc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
           </RadioGroup>
         )}
 
@@ -578,7 +684,10 @@ export function NewAssessmentOrganisationPage() {
             </div>
             <div>
               <Label>{t("app.assessment.profiles.country")}</Label>
-              <Select value={country || undefined} onValueChange={handleCountryChange}>
+              <Select
+                value={country || undefined}
+                onValueChange={handleCountryChange}
+              >
                 <SelectTrigger className="mt-1">
                   <SelectValue
                     placeholder={t("app.assessment.wizard.selectCountry")}
@@ -712,7 +821,9 @@ export function NewAssessmentOrganisationPage() {
               <TagInput
                 value={certifications}
                 onChange={setCertifications}
-                placeholder={t("app.assessment.wizard.certificationsPlaceholder")}
+                placeholder={t(
+                  "app.assessment.wizard.certificationsPlaceholder"
+                )}
               />
             </div>
             <div>

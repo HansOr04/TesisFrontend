@@ -14,6 +14,7 @@ import { Route as LoggedinRouteImport } from "./routes/_loggedin"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as LoggedinAssessmentsIndexRouteImport } from "./routes/_loggedin/assessments/index"
 import { Route as LoggedinAssessmentsUsersRouteImport } from "./routes/_loggedin/assessments/users"
+import { Route as LoggedinAssessmentsOrganisationsRouteImport } from "./routes/_loggedin/assessments/organisations"
 import { Route as LoggedinAssessmentsNewRouteImport } from "./routes/_loggedin/assessments/new"
 import { Route as LoggedinAssessmentsDashboardRouteImport } from "./routes/_loggedin/assessments/dashboard"
 import { Route as LoggedinAssessmentsAnalyticsRouteImport } from "./routes/_loggedin/assessments/analytics"
@@ -25,6 +26,7 @@ import { Route as LoggedinAssessmentsRiskAdminRouteImport } from "./routes/_logg
 import { Route as LoggedinAssessmentsOrganizationalAdminRouteImport } from "./routes/_loggedin/assessments/organizational/admin"
 import { Route as LoggedinAssessmentsCapacityAdminRouteImport } from "./routes/_loggedin/assessments/capacity/admin"
 import { Route as LoggedinAssessmentsAssociationsProfileIdRouteImport } from "./routes/_loggedin/assessments/associations/$profileId"
+import { Route as LoggedinAssessmentsProfileIdEditRouteImport } from "./routes/_loggedin/assessments/$profileId/edit"
 import { Route as LoggedinAssessmentsRiskEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/risk/$evaluationId/index"
 import { Route as LoggedinAssessmentsOrganizationalEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/index"
 import { Route as LoggedinAssessmentsCapacityEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/capacity/$evaluationId/index"
@@ -64,6 +66,12 @@ const LoggedinAssessmentsUsersRoute =
   LoggedinAssessmentsUsersRouteImport.update({
     id: "/assessments/users",
     path: "/assessments/users",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsOrganisationsRoute =
+  LoggedinAssessmentsOrganisationsRouteImport.update({
+    id: "/assessments/organisations",
+    path: "/assessments/organisations",
     getParentRoute: () => LoggedinRoute,
   } as any)
 const LoggedinAssessmentsNewRoute = LoggedinAssessmentsNewRouteImport.update({
@@ -129,6 +137,12 @@ const LoggedinAssessmentsAssociationsProfileIdRoute =
   LoggedinAssessmentsAssociationsProfileIdRouteImport.update({
     id: "/assessments/associations/$profileId",
     path: "/assessments/associations/$profileId",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
+const LoggedinAssessmentsProfileIdEditRoute =
+  LoggedinAssessmentsProfileIdEditRouteImport.update({
+    id: "/assessments/$profileId/edit",
+    path: "/assessments/$profileId/edit",
     getParentRoute: () => LoggedinRoute,
   } as any)
 const LoggedinAssessmentsRiskEvaluationIdIndexRoute =
@@ -229,8 +243,10 @@ export interface FileRoutesByFullPath {
   "/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
   "/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
@@ -260,8 +276,10 @@ export interface FileRoutesByTo {
   "/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/assessments": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
   "/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
@@ -293,8 +311,10 @@ export interface FileRoutesById {
   "/_loggedin/assessments/analytics": typeof LoggedinAssessmentsAnalyticsRoute
   "/_loggedin/assessments/dashboard": typeof LoggedinAssessmentsDashboardRoute
   "/_loggedin/assessments/new": typeof LoggedinAssessmentsNewRoute
+  "/_loggedin/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/_loggedin/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/_loggedin/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/_loggedin/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/_loggedin/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/_loggedin/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
   "/_loggedin/assessments/organizational/admin": typeof LoggedinAssessmentsOrganizationalAdminRoute
@@ -326,8 +346,10 @@ export interface FileRouteTypes {
     | "/assessments/analytics"
     | "/assessments/dashboard"
     | "/assessments/new"
+    | "/assessments/organisations"
     | "/assessments/users"
     | "/assessments/"
+    | "/assessments/$profileId/edit"
     | "/assessments/associations/$profileId"
     | "/assessments/capacity/admin"
     | "/assessments/organizational/admin"
@@ -357,8 +379,10 @@ export interface FileRouteTypes {
     | "/assessments/analytics"
     | "/assessments/dashboard"
     | "/assessments/new"
+    | "/assessments/organisations"
     | "/assessments/users"
     | "/assessments"
+    | "/assessments/$profileId/edit"
     | "/assessments/associations/$profileId"
     | "/assessments/capacity/admin"
     | "/assessments/organizational/admin"
@@ -389,8 +413,10 @@ export interface FileRouteTypes {
     | "/_loggedin/assessments/analytics"
     | "/_loggedin/assessments/dashboard"
     | "/_loggedin/assessments/new"
+    | "/_loggedin/assessments/organisations"
     | "/_loggedin/assessments/users"
     | "/_loggedin/assessments/"
+    | "/_loggedin/assessments/$profileId/edit"
     | "/_loggedin/assessments/associations/$profileId"
     | "/_loggedin/assessments/capacity/admin"
     | "/_loggedin/assessments/organizational/admin"
@@ -455,6 +481,13 @@ declare module "@tanstack/react-router" {
       path: "/assessments/users"
       fullPath: "/assessments/users"
       preLoaderRoute: typeof LoggedinAssessmentsUsersRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/organisations": {
+      id: "/_loggedin/assessments/organisations"
+      path: "/assessments/organisations"
+      fullPath: "/assessments/organisations"
+      preLoaderRoute: typeof LoggedinAssessmentsOrganisationsRouteImport
       parentRoute: typeof LoggedinRoute
     }
     "/_loggedin/assessments/new": {
@@ -532,6 +565,13 @@ declare module "@tanstack/react-router" {
       path: "/assessments/associations/$profileId"
       fullPath: "/assessments/associations/$profileId"
       preLoaderRoute: typeof LoggedinAssessmentsAssociationsProfileIdRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
+    "/_loggedin/assessments/$profileId/edit": {
+      id: "/_loggedin/assessments/$profileId/edit"
+      path: "/assessments/$profileId/edit"
+      fullPath: "/assessments/$profileId/edit"
+      preLoaderRoute: typeof LoggedinAssessmentsProfileIdEditRouteImport
       parentRoute: typeof LoggedinRoute
     }
     "/_loggedin/assessments/risk/$evaluationId/": {
@@ -640,8 +680,10 @@ interface LoggedinRouteChildren {
   LoggedinAssessmentsAnalyticsRoute: typeof LoggedinAssessmentsAnalyticsRoute
   LoggedinAssessmentsDashboardRoute: typeof LoggedinAssessmentsDashboardRoute
   LoggedinAssessmentsNewRoute: typeof LoggedinAssessmentsNewRoute
+  LoggedinAssessmentsOrganisationsRoute: typeof LoggedinAssessmentsOrganisationsRoute
   LoggedinAssessmentsUsersRoute: typeof LoggedinAssessmentsUsersRoute
   LoggedinAssessmentsIndexRoute: typeof LoggedinAssessmentsIndexRoute
+  LoggedinAssessmentsProfileIdEditRoute: typeof LoggedinAssessmentsProfileIdEditRoute
   LoggedinAssessmentsAssociationsProfileIdRoute: typeof LoggedinAssessmentsAssociationsProfileIdRoute
   LoggedinAssessmentsCapacityAdminRoute: typeof LoggedinAssessmentsCapacityAdminRoute
   LoggedinAssessmentsOrganizationalAdminRoute: typeof LoggedinAssessmentsOrganizationalAdminRoute
@@ -670,8 +712,10 @@ const LoggedinRouteChildren: LoggedinRouteChildren = {
   LoggedinAssessmentsAnalyticsRoute: LoggedinAssessmentsAnalyticsRoute,
   LoggedinAssessmentsDashboardRoute: LoggedinAssessmentsDashboardRoute,
   LoggedinAssessmentsNewRoute: LoggedinAssessmentsNewRoute,
+  LoggedinAssessmentsOrganisationsRoute: LoggedinAssessmentsOrganisationsRoute,
   LoggedinAssessmentsUsersRoute: LoggedinAssessmentsUsersRoute,
   LoggedinAssessmentsIndexRoute: LoggedinAssessmentsIndexRoute,
+  LoggedinAssessmentsProfileIdEditRoute: LoggedinAssessmentsProfileIdEditRoute,
   LoggedinAssessmentsAssociationsProfileIdRoute:
     LoggedinAssessmentsAssociationsProfileIdRoute,
   LoggedinAssessmentsCapacityAdminRoute: LoggedinAssessmentsCapacityAdminRoute,

@@ -99,6 +99,28 @@ export const genericSingleFetchWithoutOrganisation = async <T>(
   return (await response.json()) as T;
 };
 
+/** POST/PUT/PATCH/DELETE sin prefijo de organización (rutas globales). */
+export const genericMutateWithoutOrganisation = async <T, R = T>(
+  controller: string,
+  methodType: "POST" | "PUT" | "PATCH" | "DELETE",
+  data?: T,
+  token?: string
+): Promise<R> => {
+  const response = await authorizedFetch(
+    `${baseURL}${controller}`,
+    {
+      method: methodType,
+      headers: { "Content-Type": "application/json" },
+      body:
+        data === undefined || data === null ? undefined : JSON.stringify(data),
+    },
+    token
+  );
+  await throwIfNotOk(response, `${methodType} ${controller} failed`);
+  const text = await response.text();
+  return (text ? JSON.parse(text) : null) as R;
+};
+
 /** POST/PUT/PATCH/DELETE /:org/<controller> con cuerpo JSON. */
 export const genericPostPutPatch = async <T, R = T>(
   organisation: string,
