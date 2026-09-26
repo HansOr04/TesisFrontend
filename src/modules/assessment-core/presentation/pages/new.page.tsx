@@ -32,38 +32,40 @@ import type {
 
 const TOTAL_STEPS = 4;
 const CURRENT_YEAR = new Date().getFullYear();
+// Mínimo de dígitos del número nacional (sin el prefijo del país), igual
+// para todos los países de la lista.
+const MIN_PHONE_DIGITS = 9;
+const MAX_PHONE_DIGITS = 15; // límite E.164, evita que se escriba sin control
 
 // Código ISO 3166-1 alpha-2 (mismo formato que usa el resto del sistema, p.ej.
-// AssessmentRiskCountryParam) + prefijo telefónico + longitud típica del
-// número nacional de celular (sin el prefijo), para validar el teléfono.
+// AssessmentRiskCountryParam) + prefijo telefónico.
 interface LatamCountry {
   code: string;
   name: string;
   dialCode: string;
-  phoneDigits: number;
 }
 
 const LATAM_COUNTRIES: LatamCountry[] = [
-  { code: "AR", name: "Argentina", dialCode: "54", phoneDigits: 10 },
-  { code: "BO", name: "Bolivia", dialCode: "591", phoneDigits: 8 },
-  { code: "BR", name: "Brasil", dialCode: "55", phoneDigits: 11 },
-  { code: "CL", name: "Chile", dialCode: "56", phoneDigits: 9 },
-  { code: "CO", name: "Colombia", dialCode: "57", phoneDigits: 10 },
-  { code: "CR", name: "Costa Rica", dialCode: "506", phoneDigits: 8 },
-  { code: "CU", name: "Cuba", dialCode: "53", phoneDigits: 8 },
-  { code: "EC", name: "Ecuador", dialCode: "593", phoneDigits: 9 },
-  { code: "SV", name: "El Salvador", dialCode: "503", phoneDigits: 8 },
-  { code: "GT", name: "Guatemala", dialCode: "502", phoneDigits: 8 },
-  { code: "HT", name: "Haití", dialCode: "509", phoneDigits: 8 },
-  { code: "HN", name: "Honduras", dialCode: "504", phoneDigits: 8 },
-  { code: "MX", name: "México", dialCode: "52", phoneDigits: 10 },
-  { code: "NI", name: "Nicaragua", dialCode: "505", phoneDigits: 8 },
-  { code: "PA", name: "Panamá", dialCode: "507", phoneDigits: 8 },
-  { code: "PY", name: "Paraguay", dialCode: "595", phoneDigits: 9 },
-  { code: "PE", name: "Perú", dialCode: "51", phoneDigits: 9 },
-  { code: "DO", name: "República Dominicana", dialCode: "1", phoneDigits: 10 },
-  { code: "UY", name: "Uruguay", dialCode: "598", phoneDigits: 8 },
-  { code: "VE", name: "Venezuela", dialCode: "58", phoneDigits: 10 },
+  { code: "AR", name: "Argentina", dialCode: "54" },
+  { code: "BO", name: "Bolivia", dialCode: "591" },
+  { code: "BR", name: "Brasil", dialCode: "55" },
+  { code: "CL", name: "Chile", dialCode: "56" },
+  { code: "CO", name: "Colombia", dialCode: "57" },
+  { code: "CR", name: "Costa Rica", dialCode: "506" },
+  { code: "CU", name: "Cuba", dialCode: "53" },
+  { code: "EC", name: "Ecuador", dialCode: "593" },
+  { code: "SV", name: "El Salvador", dialCode: "503" },
+  { code: "GT", name: "Guatemala", dialCode: "502" },
+  { code: "HT", name: "Haití", dialCode: "509" },
+  { code: "HN", name: "Honduras", dialCode: "504" },
+  { code: "MX", name: "México", dialCode: "52" },
+  { code: "NI", name: "Nicaragua", dialCode: "505" },
+  { code: "PA", name: "Panamá", dialCode: "507" },
+  { code: "PY", name: "Paraguay", dialCode: "595" },
+  { code: "PE", name: "Perú", dialCode: "51" },
+  { code: "DO", name: "República Dominicana", dialCode: "1" },
+  { code: "UY", name: "Uruguay", dialCode: "598" },
+  { code: "VE", name: "Venezuela", dialCode: "58" },
 ];
 
 /** Quita cualquier prefijo "+<código> " ya presente, dejando solo dígitos. */
@@ -201,12 +203,19 @@ export function NewAssessmentOrganisationPage() {
   const selectedCountry = LATAM_COUNTRIES.find((c) => c.code === country);
   const phoneNationalDigits = stripPhonePrefix(contactPhone);
   const phoneDigitsError =
-    selectedCountry &&
     phoneNationalDigits.length > 0 &&
-    phoneNationalDigits.length !== selectedCountry.phoneDigits
+    phoneNationalDigits.length < MIN_PHONE_DIGITS
       ? t("app.assessment.wizard.phoneDigitsError", {
-          digits: selectedCountry.phoneDigits,
+          digits: MIN_PHONE_DIGITS,
         })
+      : null;
+
+  const memberCountNum = Number(memberCount);
+  const memberCountError =
+    memberCount.trim() === "" ||
+    !Number.isInteger(memberCountNum) ||
+    memberCountNum < 1
+      ? t("app.assessment.wizard.memberCountError")
       : null;
 
   const [excludedSectionIds, setExcludedSectionIds] = useState<Set<string>>(
@@ -226,7 +235,8 @@ export function NewAssessmentOrganisationPage() {
     completed: number;
   } | null>(null);
 
-  const step2Valid = name.trim().length > 0 && country.trim().length > 0;
+  const step2Valid =
+    name.trim().length > 0 && country.trim().length > 0 && !memberCountError;
   const step3Valid = mainProduct.trim().length > 0;
 
   const isLevel2Association =
@@ -275,12 +285,9 @@ export function NewAssessmentOrganisationPage() {
   };
 
   const handlePhoneChange = (raw: string) => {
-    const digits = stripPhonePrefix(raw).slice(
-      0,
-      selectedCountry?.phoneDigits
-    );
+    const digits = stripPhonePrefix(raw).slice(0, MAX_PHONE_DIGITS);
     setContactPhone(
-      selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : raw
+      selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : digits
     );
   };
 
@@ -323,7 +330,7 @@ export function NewAssessmentOrganisationPage() {
         associationLevel: type === "ASSOCIATION" ? associationLevel : undefined,
         country,
         yearStarted: yearStarted ? Number(yearStarted) : undefined,
-        memberCount: memberCount ? Number(memberCount) : undefined,
+        memberCount: memberCountNum,
         contactPhone: contactPhone || undefined,
         contactEmail: contactEmail || undefined,
         mainActivity: mainActivity || undefined,
@@ -609,17 +616,28 @@ export function NewAssessmentOrganisationPage() {
                 <Label>{t("app.assessment.wizard.memberCount")}</Label>
                 <Input
                   type="number"
+                  min={1}
                   value={memberCount}
                   onChange={(e) => {
                     setMemberCount(e.target.value);
                   }}
                   className="mt-1"
                 />
+                {memberCountError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {memberCountError}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t("app.assessment.wizard.phone")}</Label>
+                <Label>
+                  {t("app.assessment.wizard.phone")}{" "}
+                  <span className="text-muted-foreground font-normal">
+                    ({t("app.common.optional")})
+                  </span>
+                </Label>
                 <Input
                   value={contactPhone}
                   onChange={(e) => {
@@ -685,7 +703,12 @@ export function NewAssessmentOrganisationPage() {
               />
             </div>
             <div>
-              <Label>{t("app.assessment.wizard.certifications")}</Label>
+              <Label>
+                {t("app.assessment.wizard.certifications")}{" "}
+                <span className="text-muted-foreground font-normal">
+                  ({t("app.common.optional")})
+                </span>
+              </Label>
               <TagInput
                 value={certifications}
                 onChange={setCertifications}
