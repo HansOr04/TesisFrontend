@@ -29,9 +29,9 @@ export const TOOL_SHORT: Record<AnalyticsTool, string> = {
   RISK: "RIE",
 };
 export const TOOL_COLOR: Record<AnalyticsTool, string> = {
-  ORGANIZATIONAL: "#1F9D5B",
+  ORGANIZATIONAL: "#1D8FBF",
   CAPACITY: "#F28C0F",
-  RISK: "#1D8FBF",
+  RISK: "#1F9D5B",
 };
 export const TOOLS: AnalyticsTool[] = ["ORGANIZATIONAL", "CAPACITY", "RISK"];
 
