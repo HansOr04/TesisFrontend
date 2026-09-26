@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
@@ -80,6 +81,7 @@ export function IndicatorToolSectionPage({ def }: { def: IndicatorToolUi }) {
 
   const evaluationQuery = useQuery(def.queries.evaluation(org, evaluationId));
   const evaluation = evaluationQuery.data ?? null;
+  useSetPageHeaderName(evaluation?.profile.name);
   const loading = evaluationQuery.isLoading;
   const [activeIndicator, setActiveIndicator] =
     useState<AssessmentIndicatorData | null>(null);

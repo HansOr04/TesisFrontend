@@ -19,8 +19,11 @@ import {
 import { ChevronRight, X } from "lucide-react";
 import {
   createAssessmentProfile,
+  updateAssessmentProfile,
   setProfileApplicability,
+  fetchAssessmentProfile,
   fetchAssessmentProfiles,
+  fetchProfileApplicability,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { ApplicabilityEditor } from "@/modules/assessment-core/presentation/components/applicability-editor";
 import type {
@@ -32,38 +35,40 @@ import type {
 
 const TOTAL_STEPS = 4;
 const CURRENT_YEAR = new Date().getFullYear();
+// Mínimo de dígitos del número nacional (sin el prefijo del país), igual
+// para todos los países de la lista.
+const MIN_PHONE_DIGITS = 9;
+const MAX_PHONE_DIGITS = 15; // límite E.164, evita que se escriba sin control
 
 // Código ISO 3166-1 alpha-2 (mismo formato que usa el resto del sistema, p.ej.
-// AssessmentRiskCountryParam) + prefijo telefónico + longitud típica del
-// número nacional de celular (sin el prefijo), para validar el teléfono.
+// AssessmentRiskCountryParam) + prefijo telefónico.
 interface LatamCountry {
   code: string;
   name: string;
   dialCode: string;
-  phoneDigits: number;
 }
 
 const LATAM_COUNTRIES: LatamCountry[] = [
-  { code: "AR", name: "Argentina", dialCode: "54", phoneDigits: 10 },
-  { code: "BO", name: "Bolivia", dialCode: "591", phoneDigits: 8 },
-  { code: "BR", name: "Brasil", dialCode: "55", phoneDigits: 11 },
-  { code: "CL", name: "Chile", dialCode: "56", phoneDigits: 9 },
-  { code: "CO", name: "Colombia", dialCode: "57", phoneDigits: 10 },
-  { code: "CR", name: "Costa Rica", dialCode: "506", phoneDigits: 8 },
-  { code: "CU", name: "Cuba", dialCode: "53", phoneDigits: 8 },
-  { code: "EC", name: "Ecuador", dialCode: "593", phoneDigits: 9 },
-  { code: "SV", name: "El Salvador", dialCode: "503", phoneDigits: 8 },
-  { code: "GT", name: "Guatemala", dialCode: "502", phoneDigits: 8 },
-  { code: "HT", name: "Haití", dialCode: "509", phoneDigits: 8 },
-  { code: "HN", name: "Honduras", dialCode: "504", phoneDigits: 8 },
-  { code: "MX", name: "México", dialCode: "52", phoneDigits: 10 },
-  { code: "NI", name: "Nicaragua", dialCode: "505", phoneDigits: 8 },
-  { code: "PA", name: "Panamá", dialCode: "507", phoneDigits: 8 },
-  { code: "PY", name: "Paraguay", dialCode: "595", phoneDigits: 9 },
-  { code: "PE", name: "Perú", dialCode: "51", phoneDigits: 9 },
-  { code: "DO", name: "República Dominicana", dialCode: "1", phoneDigits: 10 },
-  { code: "UY", name: "Uruguay", dialCode: "598", phoneDigits: 8 },
-  { code: "VE", name: "Venezuela", dialCode: "58", phoneDigits: 10 },
+  { code: "AR", name: "Argentina", dialCode: "54" },
+  { code: "BO", name: "Bolivia", dialCode: "591" },
+  { code: "BR", name: "Brasil", dialCode: "55" },
+  { code: "CL", name: "Chile", dialCode: "56" },
+  { code: "CO", name: "Colombia", dialCode: "57" },
+  { code: "CR", name: "Costa Rica", dialCode: "506" },
+  { code: "CU", name: "Cuba", dialCode: "53" },
+  { code: "EC", name: "Ecuador", dialCode: "593" },
+  { code: "SV", name: "El Salvador", dialCode: "503" },
+  { code: "GT", name: "Guatemala", dialCode: "502" },
+  { code: "HT", name: "Haití", dialCode: "509" },
+  { code: "HN", name: "Honduras", dialCode: "504" },
+  { code: "MX", name: "México", dialCode: "52" },
+  { code: "NI", name: "Nicaragua", dialCode: "505" },
+  { code: "PA", name: "Panamá", dialCode: "507" },
+  { code: "PY", name: "Paraguay", dialCode: "595" },
+  { code: "PE", name: "Perú", dialCode: "51" },
+  { code: "DO", name: "República Dominicana", dialCode: "1" },
+  { code: "UY", name: "Uruguay", dialCode: "598" },
+  { code: "VE", name: "Venezuela", dialCode: "58" },
 ];
 
 /** Quita cualquier prefijo "+<código> " ya presente, dejando solo dígitos. */
@@ -118,7 +123,11 @@ function TagInput({
           if (e.key === "Enter") {
             e.preventDefault();
             commitDraft();
-          } else if (e.key === "Backspace" && draft === "" && value.length > 0) {
+          } else if (
+            e.key === "Backspace" &&
+            draft === "" &&
+            value.length > 0
+          ) {
             onChange(value.slice(0, -1));
           }
         }}
@@ -167,16 +176,22 @@ function Stepper({ current }: { current: number }) {
   );
 }
 
-export function NewAssessmentOrganisationPage() {
+// El mismo asistente sirve para dar de alta y para corregir después lo que
+// se capturó: con `profileId` arranca en modo edición, precargado.
+export function AssessmentProfileWizardPage({
+  profileId,
+}: { profileId?: string } = {}) {
   const auth = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate({ from: "/assessments/new" });
 
   const org = auth.organisations?.current;
   const token = auth.currentUser?.accessToken;
+  const isEdit = Boolean(profileId);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(Boolean(profileId));
 
   const [type, setType] = useState<AssessmentProfileType>("ASSOCIATION");
   const [associationLevel, setAssociationLevel] =
@@ -201,12 +216,19 @@ export function NewAssessmentOrganisationPage() {
   const selectedCountry = LATAM_COUNTRIES.find((c) => c.code === country);
   const phoneNationalDigits = stripPhonePrefix(contactPhone);
   const phoneDigitsError =
-    selectedCountry &&
     phoneNationalDigits.length > 0 &&
-    phoneNationalDigits.length !== selectedCountry.phoneDigits
+    phoneNationalDigits.length < MIN_PHONE_DIGITS
       ? t("app.assessment.wizard.phoneDigitsError", {
-          digits: selectedCountry.phoneDigits,
+          digits: MIN_PHONE_DIGITS,
         })
+      : null;
+
+  const memberCountNum = Number(memberCount);
+  const memberCountError =
+    memberCount.trim() === "" ||
+    !Number.isInteger(memberCountNum) ||
+    memberCountNum < 1
+      ? t("app.assessment.wizard.memberCountError")
       : null;
 
   const [excludedSectionIds, setExcludedSectionIds] = useState<Set<string>>(
@@ -226,7 +248,8 @@ export function NewAssessmentOrganisationPage() {
     completed: number;
   } | null>(null);
 
-  const step2Valid = name.trim().length > 0 && country.trim().length > 0;
+  const step2Valid =
+    name.trim().length > 0 && country.trim().length > 0 && !memberCountError;
   const step3Valid = mainProduct.trim().length > 0;
 
   const isLevel2Association =
@@ -249,7 +272,10 @@ export function NewAssessmentOrganisationPage() {
         if (cancelled) return;
         setAssociations(
           profiles.filter(
-            (p) => p.type === "ASSOCIATION" && p.associationLevel === "LEVEL_2"
+            (p) =>
+              p.type === "ASSOCIATION" &&
+              p.associationLevel === "LEVEL_2" &&
+              p.id !== profileId
           )
         );
       } catch (err: unknown) {
@@ -259,11 +285,65 @@ export function NewAssessmentOrganisationPage() {
     return () => {
       cancelled = true;
     };
-  }, [org, token]);
+  }, [org, token, profileId]);
 
   useEffect(() => {
     if (isLevel2Association) setParentProfileId("");
   }, [isLevel2Association]);
+
+  // Modo edición: se cargan el perfil y su aplicabilidad antes de mostrar
+  // nada, para que el asistente arranque con lo que se guardó en el alta.
+  useEffect(() => {
+    if (!org || !profileId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [profile, applicability] = await Promise.all([
+          fetchAssessmentProfile(org, profileId),
+          fetchProfileApplicability(org, profileId),
+        ]);
+        if (cancelled) return;
+        setType(profile.type);
+        setAssociationLevel(profile.associationLevel ?? "LEVEL_1");
+        setParentProfileId(profile.parentProfileId ?? "");
+        setName(profile.name);
+        setTradeName(profile.tradeName ?? "");
+        setCountry(profile.country);
+        setYearStarted(profile.yearStarted ? String(profile.yearStarted) : "");
+        setMemberCount(profile.memberCount ? String(profile.memberCount) : "");
+        setContactPhone(profile.contactPhone ?? "");
+        setContactEmail(profile.contactEmail ?? "");
+        setMainActivity(profile.mainActivity ?? "");
+        setMainProduct(profile.mainProduct);
+        setSecondaryProducts(profile.secondaryProducts ?? "");
+        setCertifications(
+          profile.certifications
+            ? profile.certifications
+                .split(",")
+                .map((c) => c.trim())
+                .filter((c) => c.length > 0)
+            : []
+        );
+        setMainMarkets(profile.mainMarkets ?? "");
+        setExcludedSectionIds(new Set(applicability.excludedSectionIds));
+        setExcludedIndicatorIds(new Set(applicability.excludedIndicatorIds));
+      } catch (err: unknown) {
+        toast({
+          title: t("app.common.error"),
+          description:
+            err instanceof Error
+              ? err.message
+              : t("app.assessment.wizard.loadFailed"),
+          variant: "destructive",
+        });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [org, profileId, t]);
 
   const handleCountryChange = (code: string) => {
     setCountry(code);
@@ -275,12 +355,9 @@ export function NewAssessmentOrganisationPage() {
   };
 
   const handlePhoneChange = (raw: string) => {
-    const digits = stripPhonePrefix(raw).slice(
-      0,
-      selectedCountry?.phoneDigits
-    );
+    const digits = stripPhonePrefix(raw).slice(0, MAX_PHONE_DIGITS);
     setContactPhone(
-      selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : raw
+      selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : digits
     );
   };
 
@@ -323,7 +400,7 @@ export function NewAssessmentOrganisationPage() {
         associationLevel: type === "ASSOCIATION" ? associationLevel : undefined,
         country,
         yearStarted: yearStarted ? Number(yearStarted) : undefined,
-        memberCount: memberCount ? Number(memberCount) : undefined,
+        memberCount: memberCountNum,
         contactPhone: contactPhone || undefined,
         contactEmail: contactEmail || undefined,
         mainActivity: mainActivity || undefined,
@@ -334,8 +411,15 @@ export function NewAssessmentOrganisationPage() {
         mainMarkets: mainMarkets || undefined,
         parentProfileId: effectiveParentId,
       };
-      const profile = await createAssessmentProfile(org, data, refreshedToken);
-      if (excludedSectionIds.size > 0 || excludedIndicatorIds.size > 0) {
+      const profile = profileId
+        ? await updateAssessmentProfile(org, profileId, data, refreshedToken)
+        : await createAssessmentProfile(org, data, refreshedToken);
+      // En edición se envía siempre, para que quitar exclusiones persista.
+      if (
+        isEdit ||
+        excludedSectionIds.size > 0 ||
+        excludedIndicatorIds.size > 0
+      ) {
         await setProfileApplicability(
           org,
           profile.id,
@@ -345,6 +429,16 @@ export function NewAssessmentOrganisationPage() {
           },
           refreshedToken
         );
+      }
+
+      if (isEdit) {
+        toast({
+          title: t("app.common.success"),
+          description: t("app.assessment.wizard.updated"),
+          variant: "success",
+        });
+        void navigate({ to: "/assessments" });
+        return;
       }
 
       // Asociación Nivel 2 recién creada con miembros pendientes: en vez de
@@ -421,14 +515,29 @@ export function NewAssessmentOrganisationPage() {
     (step === 3 && !step3Valid) ||
     saving;
 
-  const saveLabel =
-    childCreation && childCreation.completed + 1 < childCreation.total
+  const saveLabel = isEdit
+    ? t("app.assessment.wizard.saveChanges")
+    : childCreation && childCreation.completed + 1 < childCreation.total
       ? t("app.assessment.wizard.saveAndCreateNext")
       : t("app.assessment.organizational.save");
 
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-3xl py-12 text-center text-sm text-muted-foreground">
+        {t("app.assessment.wizard.loading")}
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6 max-w-3xl">
-      <PageTitle rawTitle={t("app.assessment.profiles.newProfile")} />
+      <PageTitle
+        rawTitle={
+          isEdit
+            ? t("app.assessment.wizard.editTitle", { name })
+            : t("app.assessment.profiles.newProfile")
+        }
+      />
       <p className="text-sm text-muted-foreground">
         {step === 1
           ? t("app.assessment.wizard.step1Subtitle")
@@ -516,31 +625,35 @@ export function NewAssessmentOrganisationPage() {
               </div>
             )}
 
-            {!isLevel2Association && !childCreation && associations.length > 0 && (
-              <div className="pt-2">
-                <Label>{t("app.assessment.wizard.belongsToAssociation")}</Label>
-                <Select
-                  value={parentProfileId || "none"}
-                  onValueChange={(v) => {
-                    setParentProfileId(v === "none" ? "" : v);
-                  }}
-                >
-                  <SelectTrigger className="mt-1.5">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">
-                      {t("app.assessment.wizard.noAssociation")}
-                    </SelectItem>
-                    {associations.map((assoc) => (
-                      <SelectItem key={assoc.id} value={assoc.id}>
-                        {assoc.name}
+            {!isLevel2Association &&
+              !childCreation &&
+              associations.length > 0 && (
+                <div className="pt-2">
+                  <Label>
+                    {t("app.assessment.wizard.belongsToAssociation")}
+                  </Label>
+                  <Select
+                    value={parentProfileId || "none"}
+                    onValueChange={(v) => {
+                      setParentProfileId(v === "none" ? "" : v);
+                    }}
+                  >
+                    <SelectTrigger className="mt-1.5">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        {t("app.assessment.wizard.noAssociation")}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                      {associations.map((assoc) => (
+                        <SelectItem key={assoc.id} value={assoc.id}>
+                          {assoc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
           </RadioGroup>
         )}
 
@@ -571,7 +684,10 @@ export function NewAssessmentOrganisationPage() {
             </div>
             <div>
               <Label>{t("app.assessment.profiles.country")}</Label>
-              <Select value={country || undefined} onValueChange={handleCountryChange}>
+              <Select
+                value={country || undefined}
+                onValueChange={handleCountryChange}
+              >
                 <SelectTrigger className="mt-1">
                   <SelectValue
                     placeholder={t("app.assessment.wizard.selectCountry")}
@@ -609,17 +725,28 @@ export function NewAssessmentOrganisationPage() {
                 <Label>{t("app.assessment.wizard.memberCount")}</Label>
                 <Input
                   type="number"
+                  min={1}
                   value={memberCount}
                   onChange={(e) => {
                     setMemberCount(e.target.value);
                   }}
                   className="mt-1"
                 />
+                {memberCountError && (
+                  <p className="text-xs text-destructive mt-1">
+                    {memberCountError}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t("app.assessment.wizard.phone")}</Label>
+                <Label>
+                  {t("app.assessment.wizard.phone")}{" "}
+                  <span className="text-muted-foreground font-normal">
+                    ({t("app.common.optional")})
+                  </span>
+                </Label>
                 <Input
                   value={contactPhone}
                   onChange={(e) => {
@@ -685,11 +812,18 @@ export function NewAssessmentOrganisationPage() {
               />
             </div>
             <div>
-              <Label>{t("app.assessment.wizard.certifications")}</Label>
+              <Label>
+                {t("app.assessment.wizard.certifications")}{" "}
+                <span className="text-muted-foreground font-normal">
+                  ({t("app.common.optional")})
+                </span>
+              </Label>
               <TagInput
                 value={certifications}
                 onChange={setCertifications}
-                placeholder={t("app.assessment.wizard.certificationsPlaceholder")}
+                placeholder={t(
+                  "app.assessment.wizard.certificationsPlaceholder"
+                )}
               />
             </div>
             <div>

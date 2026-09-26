@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { coreQueries } from "@/modules/assessment-core/application/core-queries";
 import { useAuth } from "@/modules/auth/application/auth-context";
@@ -13,8 +13,12 @@ import {
   ClipboardCheck,
   UserCog,
   Lock,
+  Pencil,
   SlidersHorizontal,
+  ChevronRight,
+  Users,
 } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 import type { AssessmentOrganisationProfile } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { ApplicabilityDialog } from "@/modules/assessment-core/presentation/components/applicability-dialog";
 import { AssignEvaluatorDialog } from "@/modules/assessment-core/presentation/components/assign-evaluator-dialog";
@@ -34,11 +38,33 @@ export function AssessmentProfilesPage() {
     useState<AssessmentOrganisationProfile | null>(null);
   const [assigningProfile, setAssigningProfile] =
     useState<AssessmentOrganisationProfile | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const loadProfiles = useCallback(async () => {
     if (!org) return;
     await coreQueries.invalidateProfiles(queryClient, org);
   }, [queryClient, org]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Asociaciones Nivel 2 agrupan otras organizaciones (Nivel 1 o empresas)
+  // como miembros vía parentProfileId. Se muestran como acordeón para que se
+  // vea de un vistazo qué organizaciones pertenecen a cuál asociación.
+  const childrenByParent = new Map<string, AssessmentOrganisationProfile[]>();
+  for (const p of profiles) {
+    if (!p.parentProfileId) continue;
+    const siblings = childrenByParent.get(p.parentProfileId) ?? [];
+    siblings.push(p);
+    childrenByParent.set(p.parentProfileId, siblings);
+  }
+  const topLevelProfiles = profiles.filter((p) => !p.parentProfileId);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -84,90 +110,260 @@ export function AssessmentProfilesPage() {
               </tr>
             </thead>
             <tbody>
-              {profiles.map((p) => (
-                <tr key={p.id} className="border-t hover:bg-muted/30">
-                  <td className="py-3 px-4 font-medium">
-                    <div className="flex items-center gap-2">
-                      {p.name}
-                      {p.confidential && (
-                        <Lock
-                          className="h-3.5 w-3.5 text-muted-foreground shrink-0"
-                          aria-label={t(
-                            "app.assessment.profiles.confidentialLabel"
+              {topLevelProfiles.map((p) => {
+                const children = childrenByParent.get(p.id) ?? [];
+                const isExpandable = children.length > 0;
+                const isExpanded = expandedIds.has(p.id);
+                return (
+                  <Fragment key={p.id}>
+                    <tr className="border-t hover:bg-muted/30">
+                      <td className="py-3 px-4 font-medium">
+                        <div className="flex items-center gap-2">
+                          {isExpandable && (
+                            <button
+                              type="button"
+                              onClick={() => toggleExpanded(p.id)}
+                              aria-label={
+                                isExpanded
+                                  ? t("app.assessment.profiles.collapseGroup")
+                                  : t("app.assessment.profiles.expandGroup")
+                              }
+                              aria-expanded={isExpanded}
+                              className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted"
+                            >
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  isExpanded && "rotate-90"
+                                )}
+                              />
+                            </button>
                           )}
-                        />
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant="secondary">
-                      {p.type === "ASSOCIATION"
-                        ? t("app.assessment.profiles.typeAssociation")
-                        : t("app.assessment.profiles.typeCompany")}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">
-                    {p.country}
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">
-                    {p.mainProduct}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        title={t(
-                          "app.assessment.profiles.assignEvaluatorTitle"
-                        )}
-                        onClick={() => setAssigningProfile(p)}
-                      >
-                        <UserCog className="h-4 w-4" />
-                        {t("app.assessment.profiles.assignEvaluatorAction")}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        title={t("app.assessment.profiles.applicabilityTitle")}
-                        onClick={() => setApplicabilityProfile(p)}
-                      >
-                        <SlidersHorizontal className="h-4 w-4" />
-                        KPI aplicables
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
-                        onClick={() =>
-                          void navigate({ to: "/assessments/organizational" })
-                        }
-                      >
-                        <ClipboardCheck className="h-4 w-4" />
-                        Organizativa
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-tool-capacity/10 text-tool-capacity shadow-none hover:bg-tool-capacity hover:text-white"
-                        onClick={() =>
-                          void navigate({ to: "/assessments/capacity" })
-                        }
-                      >
-                        <ClipboardCheck className="h-4 w-4" />
-                        Capacidades
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-tool-risk/10 text-tool-risk shadow-none hover:bg-tool-risk hover:text-white"
-                        onClick={() =>
-                          void navigate({ to: "/assessments/risk" })
-                        }
-                      >
-                        <ClipboardCheck className="h-4 w-4" />
-                        Riesgos
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                          {p.name}
+                          {p.confidential && (
+                            <Lock
+                              className="h-3.5 w-3.5 text-muted-foreground shrink-0"
+                              aria-label={t(
+                                "app.assessment.profiles.confidentialLabel"
+                              )}
+                            />
+                          )}
+                          {isExpandable && (
+                            <Badge
+                              variant="secondary"
+                              className="gap-1 font-normal"
+                            >
+                              <Users className="h-3 w-3" />
+                              {t("app.assessment.profiles.memberCountBadge", {
+                                count: children.length,
+                              })}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="secondary">
+                          {p.type === "ASSOCIATION"
+                            ? t("app.assessment.profiles.typeAssociation")
+                            : t("app.assessment.profiles.typeCompany")}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {p.country}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {p.mainProduct}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.assessment.wizard.edit")}
+                            onClick={() =>
+                              void navigate({
+                                to: "/assessments/$profileId/edit",
+                                params: { profileId: p.id },
+                              })
+                            }
+                          >
+                            <Pencil className="h-4 w-4" />
+                            {t("app.assessment.wizard.edit")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t(
+                              "app.assessment.profiles.assignEvaluatorTitle"
+                            )}
+                            onClick={() => setAssigningProfile(p)}
+                          >
+                            <UserCog className="h-4 w-4" />
+                            {t("app.assessment.profiles.assignEvaluatorAction")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t(
+                              "app.assessment.profiles.applicabilityTitle"
+                            )}
+                            onClick={() => setApplicabilityProfile(p)}
+                          >
+                            <SlidersHorizontal className="h-4 w-4" />
+                            {t("app.assessment.profiles.applicabilityAction")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
+                            onClick={() =>
+                              void navigate({
+                                to: "/assessments/organizational",
+                              })
+                            }
+                          >
+                            <ClipboardCheck className="h-4 w-4" />
+                            Organizativa
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-tool-capacity/10 text-tool-capacity shadow-none hover:bg-tool-capacity hover:text-white"
+                            onClick={() =>
+                              void navigate({ to: "/assessments/capacity" })
+                            }
+                          >
+                            <ClipboardCheck className="h-4 w-4" />
+                            Capacidades
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-tool-risk/10 text-tool-risk shadow-none hover:bg-tool-risk hover:text-white"
+                            onClick={() =>
+                              void navigate({ to: "/assessments/risk" })
+                            }
+                          >
+                            <ClipboardCheck className="h-4 w-4" />
+                            Riesgos
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                    {isExpandable &&
+                      isExpanded &&
+                      children.map((child) => (
+                        <tr
+                          key={child.id}
+                          className="border-t bg-muted/20 hover:bg-muted/30"
+                        >
+                          <td className="py-2.5 px-4 pl-11 font-medium text-[13px]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">↳</span>
+                              {child.name}
+                              {child.confidential && (
+                                <Lock
+                                  className="h-3.5 w-3.5 text-muted-foreground shrink-0"
+                                  aria-label={t(
+                                    "app.assessment.profiles.confidentialLabel"
+                                  )}
+                                />
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-4">
+                            <Badge variant="secondary">
+                              {child.type === "ASSOCIATION"
+                                ? t("app.assessment.profiles.typeAssociation")
+                                : t("app.assessment.profiles.typeCompany")}
+                            </Badge>
+                          </td>
+                          <td className="py-2.5 px-4 text-muted-foreground">
+                            {child.country}
+                          </td>
+                          <td className="py-2.5 px-4 text-muted-foreground">
+                            {child.mainProduct}
+                          </td>
+                          <td className="py-2.5 px-4">
+                            <div className="flex flex-wrap items-center justify-end gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title={t("app.assessment.wizard.edit")}
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/$profileId/edit",
+                                    params: { profileId: child.id },
+                                  })
+                                }
+                              >
+                                <Pencil className="h-4 w-4" />
+                                {t("app.assessment.wizard.edit")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title={t(
+                                  "app.assessment.profiles.assignEvaluatorTitle"
+                                )}
+                                onClick={() => setAssigningProfile(child)}
+                              >
+                                <UserCog className="h-4 w-4" />
+                                {t(
+                                  "app.assessment.profiles.assignEvaluatorAction"
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title={t(
+                                  "app.assessment.profiles.applicabilityTitle"
+                                )}
+                                onClick={() => setApplicabilityProfile(child)}
+                              >
+                                <SlidersHorizontal className="h-4 w-4" />
+                                {t(
+                                  "app.assessment.profiles.applicabilityAction"
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/organizational",
+                                  })
+                                }
+                              >
+                                <ClipboardCheck className="h-4 w-4" />
+                                Organizativa
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-tool-capacity/10 text-tool-capacity shadow-none hover:bg-tool-capacity hover:text-white"
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/capacity",
+                                  })
+                                }
+                              >
+                                <ClipboardCheck className="h-4 w-4" />
+                                Capacidades
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-tool-risk/10 text-tool-risk shadow-none hover:bg-tool-risk hover:text-white"
+                                onClick={() =>
+                                  void navigate({ to: "/assessments/risk" })
+                                }
+                              >
+                                <ClipboardCheck className="h-4 w-4" />
+                                Riesgos
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>

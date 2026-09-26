@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -91,6 +92,7 @@ export function RiskPrincipleAnalysisPage() {
   const evaluationQuery = useQuery(riskQueries.evaluation(org, evaluationId));
   const risksQuery = useQuery(riskQueries.measures(org, evaluationId));
   const evaluation = evaluationQuery.data ?? null;
+  useSetPageHeaderName(evaluation?.profile.name);
   const risks = useMemo(() => risksQuery.data ?? [], [risksQuery.data]);
   const loading = evaluationQuery.isLoading || risksQuery.isLoading;
   const [activeIndicator, setActiveIndicator] =

@@ -15,6 +15,7 @@ import {
   type DraftResponse,
 } from "@/modules/assessment-core/presentation/components/section-panel";
 import { RingGauge } from "@/modules/assessment-core/presentation/components/ring-gauge";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { useAssessmentSession } from "@/modules/realtime/application/use-assessment-session";
 import { HttpResponseError } from "@/shared/lib/http-response-error";
 import {
@@ -53,6 +54,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   const [evaluation, setEvaluation] = useState<AssessmentEvaluationData | null>(
     null
   );
+  useSetPageHeaderName(evaluation?.profile.name);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<Record<string, DraftResponse>>({});
   const [savedDraft, setSavedDraft] = useState<Record<string, DraftResponse>>(

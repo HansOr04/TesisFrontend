@@ -12,7 +12,6 @@ import {
   ChevronDown,
   Globe,
   LayoutGrid,
-  Leaf,
   LogOut,
   Menu,
   X,
@@ -24,6 +23,11 @@ import {
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { cn } from "@/shared/lib/utils";
+import terra360Logo from "@/shared/assets/terra360-logo.jpeg";
+import {
+  PageHeaderProvider,
+  usePageHeaderName,
+} from "@/shared/components/page-header-context";
 
 interface NavItem {
   to: string;
@@ -45,10 +49,19 @@ const TONE_DOT: Record<NonNullable<NavItem["tone"]>, string> = {
 // (cada herramienta con su color) y barra superior con organización, idioma
 // y usuario. Las páginas se renderizan en <Outlet />.
 export function AppShell() {
+  return (
+    <PageHeaderProvider>
+      <AppShellInner />
+    </PageHeaderProvider>
+  );
+}
+
+function AppShellInner() {
   const auth = useAuth();
   const navigate = useNavigate();
   const { t, locale, setLocale } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pageHeaderName = usePageHeaderName();
   const [mobileOpen, setMobileOpen] = useState(false);
   useEffect(() => {
     setMobileOpen(false);
@@ -98,6 +111,12 @@ export function AppShell() {
       label: t("app.shell.users"),
       icon: Users,
       adminOnly: true,
+    },
+    {
+      to: "/assessments/organisations",
+      label: t("app.organisations.title"),
+      icon: Globe,
+      superAdminOnly: true,
     },
     {
       to: "/assessments/admin-global",
@@ -176,8 +195,12 @@ export function AppShell() {
           >
             <X className="h-5 w-5" />
           </button>
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-brand shadow-lg shadow-black/30">
-            <Leaf className="h-5 w-5 text-white" />
+          <span className="flex h-11 w-14 shrink-0 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-lg shadow-black/30">
+            <img
+              src={terra360Logo}
+              alt="Fundación Terra 360"
+              className="h-full w-full object-contain"
+            />
           </span>
           <div className="leading-tight">
             <div className="text-[15px] font-extrabold text-white">Evalúa</div>
@@ -247,8 +270,15 @@ export function AppShell() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/80 px-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <header
+          className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/80 px-4 backdrop-blur sm:px-6"
+          style={
+            current.tone
+              ? { backgroundColor: `hsl(var(--tool-${current.tone}) / 0.1)` }
+              : undefined
+          }
+        >
+          <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
             <button
               type="button"
               aria-label={
@@ -268,6 +298,21 @@ export function AppShell() {
             <span className="font-semibold text-foreground">
               {current.label}
             </span>
+            {pageHeaderName && (
+              <>
+                <span className="text-border">·</span>
+                <span
+                  className="truncate text-base font-extrabold"
+                  style={
+                    current.tone
+                      ? { color: `hsl(var(--tool-${current.tone}))` }
+                      : { color: "var(--color-brand)" }
+                  }
+                >
+                  {pageHeaderName}
+                </span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {auth.organisations && auth.organisations.allowed.length > 0 && (

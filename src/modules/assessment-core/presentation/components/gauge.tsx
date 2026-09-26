@@ -3,14 +3,15 @@ import { SCORE_COLORS } from "@/shared/design/score-colors";
 // semicírculo con 3 zonas fijas (rojo 0–5, amarillo 5–7, risk 7–10) y una aguja que
 // apunta al valor. Sin dependencias nuevas — SVG propio.
 const RED = SCORE_COLORS.critical;
-const YELLOW = SCORE_COLORS.medium;
+/** Amarillo propio del velocímetro; el resto de la app usa SCORE_COLORS.medium. */
+export const GAUGE_YELLOW = "#EAB308";
 const GREEN = SCORE_COLORS.high;
 
 // Umbrales de zona visual (leyenda del mockup: 0-5 Bajo, 5-7 Medio, 7-10 Alto).
 // Coloreado crítico de negocio (RF-03: score <= 5) usa el mismo corte rojo/no-rojo.
 export function gaugeColor(value: number): string {
   if (value <= 5) return RED;
-  if (value < 7) return YELLOW;
+  if (value < 7) return GAUGE_YELLOW;
   return GREEN;
 }
 
@@ -72,7 +73,7 @@ export function Gauge({ value, label, weightLabel, size = "sm" }: GaugeProps) {
         <path
           d={arcPath(cx, cy, r, 90, 54)}
           fill="none"
-          stroke={YELLOW}
+          stroke={GAUGE_YELLOW}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
