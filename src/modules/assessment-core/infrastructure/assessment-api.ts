@@ -44,7 +44,7 @@ export interface CreateAssessmentProfileInput {
   country: string;
   region?: string;
   yearStarted?: number;
-  memberCount?: number;
+  memberCount: number;
   mainActivity?: string;
   mainProduct: string;
   secondaryProducts?: string;
