@@ -3,7 +3,7 @@ import { SCORE_COLORS } from "@/shared/design/score-colors";
 // semicírculo con 3 zonas fijas (rojo 0–5, amarillo 5–7, risk 7–10) y una aguja que
 // apunta al valor. Sin dependencias nuevas — SVG propio.
 const RED = SCORE_COLORS.critical;
-const YELLOW = SCORE_COLORS.medium;
+const YELLOW = "#EAB308"; // antes naranja (SCORE_COLORS.medium); solo para velocímetros
 const GREEN = SCORE_COLORS.high;
 
 // Umbrales de zona visual (leyenda del mockup: 0-5 Bajo, 5-7 Medio, 7-10 Alto).

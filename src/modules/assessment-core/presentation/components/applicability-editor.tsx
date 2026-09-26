@@ -21,7 +21,7 @@ const TOOLS: {
     key: "organizational",
     label: "app.analytics.tool.ORGANIZATIONAL",
     sectionLabel: "app.assessment.organizational.section",
-    color: "#1F9D5B",
+    color: "#1D8FBF",
     fetch: fetchOrganizationalTemplates,
   },
   {
@@ -35,7 +35,7 @@ const TOOLS: {
     key: "risk",
     label: "app.analytics.tool.RISK",
     sectionLabel: "app.assessment.risk.principle",
-    color: "#1D8FBF",
+    color: "#1F9D5B",
     fetch: fetchRiskTemplates,
   },
 ];
