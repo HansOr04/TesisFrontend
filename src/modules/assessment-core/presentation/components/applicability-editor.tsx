@@ -21,7 +21,7 @@ const TOOLS: {
     key: "organizational",
     label: "app.analytics.tool.ORGANIZATIONAL",
     sectionLabel: "app.assessment.organizational.section",
-    color: "#1D8FBF",
+    color: "#196AC8",
     fetch: fetchOrganizationalTemplates,
   },
   {

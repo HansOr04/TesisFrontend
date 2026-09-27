@@ -51,7 +51,7 @@ export function MethodCard({
       icon: Eye,
       title: t("app.analytics.method.read"),
       body: read,
-      tone: "text-[#1D8FBF] bg-[#1D8FBF]/10",
+      tone: "text-[#196AC8] bg-[#196AC8]/10",
     },
     {
       icon: Search,

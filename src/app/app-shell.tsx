@@ -270,11 +270,19 @@ function AppShellInner() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Un lavado al 10% dejaba el azul y el verde casi indistinguibles.
+            La franja inferior va a color pleno, que es lo que de verdad
+            identifica la herramienta, y el fondo sube lo justo para
+            acompañarla sin pelearse con el contenido. */}
         <header
           className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/80 px-4 backdrop-blur sm:px-6"
           style={
             current.tone
-              ? { backgroundColor: `hsl(var(--tool-${current.tone}) / 0.1)` }
+              ? {
+                  backgroundColor: `hsl(var(--tool-${current.tone}) / 0.16)`,
+                  borderBottomColor: `hsl(var(--tool-${current.tone}))`,
+                  borderBottomWidth: 3,
+                }
               : undefined
           }
         >

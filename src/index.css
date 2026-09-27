@@ -39,7 +39,9 @@
     --destructive-foreground: 0 0% 100%;
 
     /* identidad por herramienta */
-    --tool-organizational: 199 80% 40%;
+    /* El azul era un cian (H199) casi vecino del verde de Riesgos (H158):
+       juntos no se distinguían. Se lleva a un azul de verdad. */
+    --tool-organizational: 212 78% 44%;
     --tool-capacity: 30 94% 50%;
     --tool-risk: 158 64% 38%;
 

@@ -26,6 +26,7 @@ import {
   fetchProfileApplicability,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { ApplicabilityEditor } from "@/modules/assessment-core/presentation/components/applicability-editor";
+import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import type {
   CreateAssessmentProfileInput,
   AssessmentAssociationLevel,
@@ -251,6 +252,10 @@ export function AssessmentProfileWizardPage({
   const step2Valid =
     name.trim().length > 0 && country.trim().length > 0 && !memberCountError;
   const step3Valid = mainProduct.trim().length > 0;
+
+  // En edición el navbar muestra de qué organización son los datos que se
+  // están tocando; en el alta todavía no hay nombre que destacar.
+  useSetPageHeaderName(isEdit ? name || null : null);
 
   const isLevel2Association =
     type === "ASSOCIATION" && associationLevel === "LEVEL_2";
