@@ -51,6 +51,10 @@ import type {
 } from "@/modules/risk-tool/infrastructure/risk-api";
 import { ExecutiveSummary } from "@/modules/assessment-core/presentation/components/executive-summary";
 import { ImpactPriorityPanel } from "@/modules/assessment-core/presentation/components/impact-priority-panel";
+import {
+  ExportReportDialog,
+  type GanttScope,
+} from "@/modules/assessment-core/presentation/components/export-report-dialog";
 import { EvolutionHistory } from "@/modules/assessment-core/presentation/components/evolution-history";
 import {
   PlanMeasureDialog,
@@ -79,6 +83,7 @@ export function RiskSummaryPage() {
   const [completing, setCompleting] = useState(false);
   const [missingMessage, setMissingMessage] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   const [checkingInconsistencies, setCheckingInconsistencies] = useState(false);
   const [inconsistencyFindings, setInconsistencyFindings] = useState<
@@ -226,28 +231,33 @@ export function RiskSummaryPage() {
     }
   }, [org, token, evaluationId, t]);
 
-  const handleExportPptx = useCallback(async () => {
-    if (!org || !token) return;
-    setExporting(true);
-    try {
-      const refreshedToken = token;
-      await exportRiskMitigationPlanPptx(
-        org,
-        evaluationId,
-        narrative,
-        refreshedToken
-      );
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      toast({
-        title: t("app.common.error"),
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setExporting(false);
-    }
-  }, [org, token, evaluationId, narrative, t]);
+  const handleExportPptx = useCallback(
+    async (ganttScope: GanttScope) => {
+      if (!org || !token) return;
+      setExporting(true);
+      try {
+        const refreshedToken = token;
+        await exportRiskMitigationPlanPptx(
+          org,
+          evaluationId,
+          narrative,
+          refreshedToken,
+          ganttScope
+        );
+        setShowExportDialog(false);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        toast({
+          title: t("app.common.error"),
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setExporting(false);
+      }
+    },
+    [org, token, evaluationId, narrative, t]
+  );
 
   const criticalIndicators = useMemo(() => {
     if (!evaluation) return [];
@@ -455,7 +465,9 @@ export function RiskSummaryPage() {
               variant="outline"
               size="sm"
               disabled={exporting}
-              onClick={() => void handleExportPptx()}
+              onClick={() => {
+                setShowExportDialog(true);
+              }}
               className="rounded-full border-teal text-teal hover:bg-teal/10 hover:text-teal"
             >
               {exporting ? (
@@ -531,7 +543,19 @@ export function RiskSummaryPage() {
         t={t}
       />
 
-      <EvolutionHistory history={evaluationHistory} t={t} />
+      <ExportReportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        onConfirm={(scope) => void handleExportPptx(scope)}
+        exporting={exporting}
+        t={t}
+      />
+
+      <EvolutionHistory
+        history={evaluationHistory}
+        t={t}
+        sectionLabel={t("app.assessment.risk.principle")}
+      />
 
       <ImpactPriorityPanel
         items={impactPriorityItems.map((item) => ({

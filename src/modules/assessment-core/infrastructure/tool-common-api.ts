@@ -58,19 +58,23 @@ export const exportSummaryFor =
     await downloadBlobResponse(response, `${filePrefix}-${evaluationId}.xlsx`);
   };
 
+/** Alcance del Gantt del reporte; debe coincidir con el DTO del backend. */
+export type ReportGanttScope = "tool" | "organisation" | "project";
+
 export const exportSummaryPptxFor =
   (tool: string, path: string, filePrefix: string) =>
   async (
     org: string,
     evaluationId: string,
     narrative?: string | null,
-    token?: string
+    token?: string,
+    ganttScope?: ReportGanttScope
   ): Promise<void> => {
     const response = await genericFetchForBlob(
       org,
       `/assessments/${tool}/evaluations/${evaluationId}/${path}`,
       "POST",
-      { narrative: narrative ?? undefined },
+      { narrative: narrative ?? undefined, ganttScope },
       token
     );
     await downloadBlobResponse(response, `${filePrefix}-${evaluationId}.pptx`);
