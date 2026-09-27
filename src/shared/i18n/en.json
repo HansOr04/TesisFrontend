@@ -958,5 +958,11 @@
   "app.assessment.wizard.loading": "Loading data…",
   "app.assessment.wizard.loadFailed": "Could not load the data",
   "app.assessment.wizard.edit": "Edit details",
-  "app.assessment.profiles.applicabilityAction": "Applicable KPI"
+  "app.assessment.profiles.applicabilityAction": "Applicable KPI",
+  "app.session.expiredTitle": "Your session expired",
+  "app.session.expiredDescription": "Nothing was closed: the screen is just as you left it. Enter your password to carry on from right here.",
+  "app.session.expiredResume": "Continue",
+  "app.session.expiredResuming": "Signing in…",
+  "app.session.expiredLogout": "Sign out anyway",
+  "app.session.expiredFailed": "The session could not be resumed"
 }
