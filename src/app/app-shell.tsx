@@ -186,28 +186,22 @@ function AppShellInner() {
         )}
         aria-label={t("app.shell.mainNav")}
       >
-        <div className="flex items-center gap-3 px-5 pt-6 pb-5">
+        {/* La cabecera es el logo y nada más: la banda lleva el mismo gris del
+            archivo, así no se ve recuadro ni marco, solo la marca. */}
+        <div className="relative shrink-0 bg-[#f7f7f7]">
           <button
             type="button"
             aria-label={t("app.shell.closeMenu")}
-            className="absolute right-3 top-3 rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white md:hidden"
+            className="absolute right-2 top-2 rounded-lg p-1.5 text-black/40 hover:bg-black/5 hover:text-black/70 md:hidden"
             onClick={() => setMobileOpen(false)}
           >
             <X className="h-5 w-5" />
           </button>
-          <span className="flex h-11 w-14 shrink-0 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-lg shadow-black/30">
-            <img
-              src={terra360Logo}
-              alt="Fundación Terra 360"
-              className="h-full w-full object-contain"
-            />
-          </span>
-          <div className="leading-tight">
-            <div className="text-[15px] font-extrabold text-white">Evalúa</div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">
-              {t("app.login.tagline")}
-            </div>
-          </div>
+          <img
+            src={terra360Logo}
+            alt="Fundación Terra 360"
+            className="block w-full px-5 py-4"
+          />
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-4">
