@@ -29,7 +29,7 @@ export const TOOL_SHORT: Record<AnalyticsTool, string> = {
   RISK: "RIE",
 };
 export const TOOL_COLOR: Record<AnalyticsTool, string> = {
-  ORGANIZATIONAL: "#1D8FBF",
+  ORGANIZATIONAL: "#196AC8",
   CAPACITY: "#F28C0F",
   RISK: "#1F9D5B",
 };

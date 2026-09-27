@@ -151,7 +151,7 @@ export function UsersPage() {
             label: t("app.users.statEvaluators"),
             value: counts.evaluators,
             icon: Shield,
-            tone: "bg-[#1D8FBF]/10 text-[#1D8FBF]",
+            tone: "bg-[#196AC8]/10 text-[#196AC8]",
           },
           {
             label: t("app.users.statInactive"),
@@ -266,7 +266,7 @@ export function UsersPage() {
                             role === "assessment_admin"
                               ? "bg-success/12 text-success"
                               : role === "assessment_evaluator"
-                                ? "bg-[#1D8FBF]/10 text-[#1D8FBF]"
+                                ? "bg-[#196AC8]/10 text-[#196AC8]"
                                 : "bg-muted text-muted-foreground"
                           )}
                         >
