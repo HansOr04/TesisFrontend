@@ -35,6 +35,10 @@ import {
 import { HttpResponseError } from "@/shared/lib/http-response-error";
 import { ExecutiveSummary } from "@/modules/assessment-core/presentation/components/executive-summary";
 import { ImpactPriorityPanel } from "@/modules/assessment-core/presentation/components/impact-priority-panel";
+import {
+  ExportReportDialog,
+  type GanttScope,
+} from "@/modules/assessment-core/presentation/components/export-report-dialog";
 import { EvolutionHistory } from "@/modules/assessment-core/presentation/components/evolution-history";
 import {
   PlanMeasureDialog,
@@ -67,6 +71,7 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
   const [completing, setCompleting] = useState(false);
   const [missingMessage, setMissingMessage] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   const [checkingInconsistencies, setCheckingInconsistencies] = useState(false);
   const [inconsistencyFindings, setInconsistencyFindings] = useState<
@@ -214,28 +219,33 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
     }
   }, [def, org, token, evaluationId, t]);
 
-  const handleExportPptx = useCallback(async () => {
-    if (!org || !token) return;
-    setExporting(true);
-    try {
-      const refreshedToken = token;
-      await def.api.exportSummaryPptx(
-        org,
-        evaluationId,
-        narrative,
-        refreshedToken
-      );
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      toast({
-        title: t("app.common.error"),
-        description: message,
-        variant: "destructive",
-      });
-    } finally {
-      setExporting(false);
-    }
-  }, [def, org, token, evaluationId, narrative, t]);
+  const handleExportPptx = useCallback(
+    async (ganttScope: GanttScope) => {
+      if (!org || !token) return;
+      setExporting(true);
+      try {
+        const refreshedToken = token;
+        await def.api.exportSummaryPptx(
+          org,
+          evaluationId,
+          narrative,
+          refreshedToken,
+          ganttScope
+        );
+        setShowExportDialog(false);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        toast({
+          title: t("app.common.error"),
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setExporting(false);
+      }
+    },
+    [def, org, token, evaluationId, narrative, t]
+  );
 
   const criticalIndicators = useMemo(() => {
     if (!evaluation) return [];
@@ -414,7 +424,9 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
               variant="outline"
               size="sm"
               disabled={exporting}
-              onClick={() => void handleExportPptx()}
+              onClick={() => {
+                setShowExportDialog(true);
+              }}
               className="rounded-full border-teal text-teal hover:bg-teal/10 hover:text-teal"
             >
               {exporting ? (
@@ -486,7 +498,19 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
         t={t}
       />
 
-      <EvolutionHistory history={evaluationHistory} t={t} />
+      <ExportReportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        onConfirm={(scope) => void handleExportPptx(scope)}
+        exporting={exporting}
+        t={t}
+      />
+
+      <EvolutionHistory
+        history={evaluationHistory}
+        t={t}
+        sectionLabel={t(`${def.i18n}.section`)}
+      />
 
       <ImpactPriorityPanel
         items={impactPriorityItems.map((item) => ({
