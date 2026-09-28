@@ -28,6 +28,7 @@ import {
   enqueueAssessmentSave,
   flushAssessmentQueue,
 } from "@/modules/realtime/infrastructure/offline-queue";
+import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 
 function areDraftsEqual(
   a: Record<string, DraftResponseRisk>,
@@ -155,7 +156,7 @@ export function RiskEvaluationDetailPage() {
     () =>
       sections.reduce(
         (sum, s) =>
-          sum + s.indicators.filter((i) => i.applicable !== false).length,
+          sum + s.indicators.filter((i) => countsInEvaluation(i)).length,
         0
       ),
     [sections]
@@ -383,7 +384,7 @@ export function RiskEvaluationDetailPage() {
       const section = sections[sectionIdx];
       if (!section) return false;
       return section.indicators
-        .filter((ind) => ind.applicable !== false)
+        .filter((ind) => countsInEvaluation(ind))
         .some((ind) => draft[ind.id]?.score == null);
     },
     [sections, draft]
@@ -444,7 +445,7 @@ export function RiskEvaluationDetailPage() {
   const isCompleted = evaluation.status === "COMPLETED";
   const currentSection = sections[principleIndex];
   const currentSectionIndicators =
-    currentSection?.indicators.filter((ind) => ind.applicable !== false) ?? [];
+    currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
   const currentSectionAverage = currentSection
     ? (() => {
