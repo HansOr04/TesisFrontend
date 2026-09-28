@@ -24,6 +24,7 @@ import {
   flushAssessmentQueue,
 } from "@/modules/realtime/infrastructure/offline-queue";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
+import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 
 function areDraftsEqual(
   a: Record<string, DraftResponse>,
@@ -141,7 +142,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
     () =>
       sections.reduce(
         (sum, s) =>
-          sum + s.indicators.filter((i) => i.applicable !== false).length,
+          sum + s.indicators.filter((i) => countsInEvaluation(i)).length,
         0
       ),
     [sections]
@@ -341,15 +342,15 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   }, [saveDimension, dimensionIndex]);
 
   // No se puede avanzar de dimensión (ni ver el resumen) si falta calificar
-  // algún KPI aplicable — los marcados applicable=false por la aplicabilidad
-  // del perfil se excluyen y no bloquean el avance. El botón "Guardar" sigue
+  // algún KPI que cuente: los no aplicables al perfil y los desactivados
+  // en la plantilla se excluyen y no bloquean el avance. El botón "Guardar" sigue
   // permitiendo progreso parcial: esta validación solo aplica a "Siguiente".
   const missingApplicableKpi = useCallback(
     (sectionIdx: number): boolean => {
       const section = sections[sectionIdx];
       if (!section) return false;
       return section.indicators
-        .filter((ind) => ind.applicable !== false)
+        .filter((ind) => countsInEvaluation(ind))
         .some((ind) => draft[ind.id]?.score == null);
     },
     [sections, draft]
@@ -411,7 +412,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   const isCompleted = evaluation.status === "COMPLETED";
   const currentSection = sections[dimensionIndex];
   const currentSectionIndicators =
-    currentSection?.indicators.filter((ind) => ind.applicable !== false) ?? [];
+    currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
   const currentSectionAverage = currentSection
     ? (() => {
