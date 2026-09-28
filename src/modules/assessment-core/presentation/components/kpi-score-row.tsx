@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Textarea } from "@/shared/ui/textarea";
 import { Button } from "@/shared/ui/button";
+import { Switch } from "@/shared/ui/switch";
 import { cn } from "@/shared/lib/utils";
 import { AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { gaugeColor } from "./gauge";
@@ -20,11 +21,14 @@ interface KpiScoreRowProps {
   scoringRubric?: string;
   score: number | null;
   observation: string;
+  /** El evaluador la marca a mano como "requiere atención", sin importar el score. */
+  manualCritical: boolean;
   t: (key: string) => string;
   onChange: (
     indicatorId: string,
     score: number | null,
-    observation: string
+    observation: string,
+    manualCritical: boolean
   ) => void;
   onImproveObservation?: () => void;
   improvingObservation?: boolean;
@@ -41,6 +45,7 @@ export function KpiScoreRow({
   scoringRubric,
   score,
   observation,
+  manualCritical,
   t,
   onChange,
   onImproveObservation,
@@ -50,6 +55,7 @@ export function KpiScoreRow({
   const isAnswered = score !== null;
   const showObservationWarning =
     score !== null && observation.trim().length === 0;
+  const isAutoCritical = score !== null && score <= 5;
 
   return (
     <div
@@ -92,6 +98,14 @@ export function KpiScoreRow({
             </p>
           )}
         </div>
+        {manualCritical && !isAutoCritical && (
+          <span
+            className="shrink-0 flex items-center gap-1 rounded-full bg-danger/10 px-2 py-1 text-xs font-bold text-danger"
+            title={t("app.assessment.organizational.manualCritical")}
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+          </span>
+        )}
         {isAnswered && (
           <span
             className="shrink-0 rounded-full h-7 w-7 flex items-center justify-center text-sm font-bold text-white"
@@ -113,7 +127,7 @@ export function KpiScoreRow({
                   key={n}
                   type="button"
                   onClick={() => {
-                    onChange(indicatorId, n, observation);
+                    onChange(indicatorId, n, observation, manualCritical);
                   }}
                   className={cn(
                     "h-10 w-10 rounded-md text-base font-semibold border transition-all",
@@ -134,7 +148,7 @@ export function KpiScoreRow({
           <Textarea
             value={observation}
             onChange={(e) => {
-              onChange(indicatorId, score, e.target.value);
+              onChange(indicatorId, score, e.target.value, manualCritical);
             }}
             placeholder={t(
               "app.assessment.organizational.observationPlaceholder"
@@ -142,6 +156,24 @@ export function KpiScoreRow({
             className="text-base min-h-[80px] border-warning/40 focus-visible:ring-brand"
             rows={3}
           />
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-3 py-2">
+            <span className="flex items-center gap-2 text-sm">
+              <AlertTriangle
+                className={cn(
+                  "h-4 w-4",
+                  manualCritical ? "text-danger" : "text-muted-foreground"
+                )}
+              />
+              {t("app.assessment.organizational.manualCritical")}
+            </span>
+            <Switch
+              checked={manualCritical}
+              onCheckedChange={(next) => {
+                onChange(indicatorId, score, observation, next);
+              }}
+              aria-label={t("app.assessment.organizational.manualCritical")}
+            />
+          </label>
           {onImproveObservation &&
             score !== null &&
             observation.trim().length > 0 && (

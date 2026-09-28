@@ -164,6 +164,7 @@ export interface AssessmentResponseData {
   score: number;
   observation: string;
   isCritical: boolean;
+  manualCritical: boolean;
   scoredBy: string;
   scoredAt: string;
   indicator: AssessmentIndicatorData;
@@ -235,6 +236,7 @@ export interface AssessmentKpiResponseInput {
   indicatorId: string;
   score: number;
   observation: string;
+  manualCritical?: boolean;
 }
 
 // ── Perfiles de organización (RF-02, assessment-core) ───────────────────────────

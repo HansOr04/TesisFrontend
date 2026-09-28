@@ -4,6 +4,7 @@ import type { AssessmentIndicatorData } from "@/modules/assessment-core/infrastr
 export interface DraftResponse {
   score: number | null;
   observation: string;
+  manualCritical: boolean;
 }
 
 // FE3-B03/B04: vista de UNA dimensión a la vez (wizard), replicando el diseño de
@@ -18,7 +19,8 @@ interface DimensionViewProps {
   onChangeKpi: (
     indicatorId: string,
     score: number | null,
-    observation: string
+    observation: string,
+    manualCritical: boolean
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
@@ -71,6 +73,7 @@ export function DimensionView({
             scoringRubric={indicator.scoringRubric}
             score={responses[indicator.id]?.score ?? null}
             observation={responses[indicator.id]?.observation ?? ""}
+            manualCritical={responses[indicator.id]?.manualCritical ?? false}
             t={t}
             onChange={onChangeKpi}
             onImproveObservation={
