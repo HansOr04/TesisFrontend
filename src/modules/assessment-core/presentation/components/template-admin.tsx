@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Pencil,
+  PowerOff,
   Trash2,
   Plus,
   ArrowLeft,
@@ -522,11 +523,15 @@ export function AssessmentTemplateAdmin({
                       <Button
                         variant="ghost"
                         size="icon"
-                        aria-label={t("app.common.delete")}
+                        aria-label={t(
+                          "app.assessment.admin.deactivateIndicator"
+                        )}
+                        title={t("app.assessment.admin.deactivateIndicator")}
                         className="h-7 w-7"
+                        disabled={!indicator.active}
                         onClick={() => void handleDeleteIndicator(indicator)}
                       >
-                        <Trash2 className="h-3 w-3 text-danger" />
+                        <PowerOff className="h-3 w-3 text-danger" />
                       </Button>
                     </div>
                   ))}
