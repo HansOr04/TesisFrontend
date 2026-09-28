@@ -1,8 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
+import { loadDraft, saveDraft, clearDraft } from "@/shared/lib/draft-storage";
 import { PageTitle } from "@/shared/components/page-title";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -36,10 +37,36 @@ import type {
 
 const TOTAL_STEPS = 4;
 const CURRENT_YEAR = new Date().getFullYear();
-// Mínimo de dígitos del número nacional (sin el prefijo del país), igual
-// para todos los países de la lista.
-const MIN_PHONE_DIGITS = 9;
-const MAX_PHONE_DIGITS = 15; // límite E.164, evita que se escriba sin control
+
+// Si la sesión se cierra por accidente a mitad del wizard (token vencido,
+// pestaña cerrada), este borrador permite recuperar lo ya escrito al volver
+// a entrar — se guarda en localStorage, no en el servidor. Solo aplica al
+// alta (no en edición, que ya carga sus datos desde el servidor).
+interface WizardDraftSnapshot {
+  type: AssessmentProfileType;
+  associationLevel: AssessmentAssociationLevel;
+  parentProfileId: string;
+  name: string;
+  tradeName: string;
+  country: string;
+  yearStarted: string;
+  memberCount: string;
+  contactPhone: string;
+  contactEmail: string;
+  mainActivity: string;
+  mainProduct: string;
+  secondaryProducts: string;
+  certifications: string[];
+  mainMarkets: string;
+  excludedSectionIds: string[];
+  excludedIndicatorIds: string[];
+  childOrgCount: string;
+  step: number;
+}
+
+// Cantidad exacta de dígitos del número nacional (sin el prefijo del país),
+// igual para todos los países de la lista: ni más ni menos.
+const PHONE_DIGITS = 9;
 
 // Código ISO 3166-1 alpha-2 (mismo formato que usa el resto del sistema, p.ej.
 // AssessmentRiskCountryParam) + prefijo telefónico.
@@ -218,9 +245,9 @@ export function AssessmentProfileWizardPage({
   const phoneNationalDigits = stripPhonePrefix(contactPhone);
   const phoneDigitsError =
     phoneNationalDigits.length > 0 &&
-    phoneNationalDigits.length < MIN_PHONE_DIGITS
+    phoneNationalDigits.length !== PHONE_DIGITS
       ? t("app.assessment.wizard.phoneDigitsError", {
-          digits: MIN_PHONE_DIGITS,
+          digits: PHONE_DIGITS,
         })
       : null;
 
@@ -250,7 +277,10 @@ export function AssessmentProfileWizardPage({
   } | null>(null);
 
   const step2Valid =
-    name.trim().length > 0 && country.trim().length > 0 && !memberCountError;
+    name.trim().length > 0 &&
+    country.trim().length > 0 &&
+    !memberCountError &&
+    !phoneDigitsError;
   const step3Valid = mainProduct.trim().length > 0;
 
   // En edición el navbar muestra de qué organización son los datos que se
@@ -266,6 +296,94 @@ export function AssessmentProfileWizardPage({
     (childOrgCount.trim() !== "" &&
       Number.isInteger(childOrgCountNum) &&
       childOrgCountNum >= 1);
+
+  // Solo en alta: en edición los datos vienen del servidor, no de un borrador
+  // local a medio llenar.
+  const draftKey = org && !isEdit ? `new-profile:${org}` : null;
+  const restoredRef = useRef(false);
+
+  // Restaura el borrador guardado (si existe) una sola vez, apenas se conoce
+  // la organización activa.
+  useEffect(() => {
+    if (!draftKey || restoredRef.current) return;
+    restoredRef.current = true;
+    const saved = loadDraft<WizardDraftSnapshot>(draftKey);
+    if (!saved) return;
+    setType(saved.type);
+    setAssociationLevel(saved.associationLevel);
+    setParentProfileId(saved.parentProfileId);
+    setName(saved.name);
+    setTradeName(saved.tradeName);
+    setCountry(saved.country);
+    setYearStarted(saved.yearStarted);
+    setMemberCount(saved.memberCount);
+    setContactPhone(saved.contactPhone);
+    setContactEmail(saved.contactEmail);
+    setMainActivity(saved.mainActivity);
+    setMainProduct(saved.mainProduct);
+    setSecondaryProducts(saved.secondaryProducts);
+    setCertifications(saved.certifications);
+    setMainMarkets(saved.mainMarkets);
+    setExcludedSectionIds(new Set(saved.excludedSectionIds));
+    setExcludedIndicatorIds(new Set(saved.excludedIndicatorIds));
+    setChildOrgCount(saved.childOrgCount);
+    setStep(saved.step);
+    if (saved.name.trim()) {
+      toast({
+        title: t("app.assessment.wizard.draftRestoredTitle"),
+        description: t("app.assessment.wizard.draftRestoredDescription"),
+      });
+    }
+    // Solo debe ejecutarse una vez, al montar (guardado por restoredRef).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
+
+  // Guarda el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
+  useEffect(() => {
+    if (!draftKey) return;
+    saveDraft<WizardDraftSnapshot>(draftKey, {
+      type,
+      associationLevel,
+      parentProfileId,
+      name,
+      tradeName,
+      country,
+      yearStarted,
+      memberCount,
+      contactPhone,
+      contactEmail,
+      mainActivity,
+      mainProduct,
+      secondaryProducts,
+      certifications,
+      mainMarkets,
+      excludedSectionIds: Array.from(excludedSectionIds),
+      excludedIndicatorIds: Array.from(excludedIndicatorIds),
+      childOrgCount,
+      step,
+    });
+  }, [
+    draftKey,
+    type,
+    associationLevel,
+    parentProfileId,
+    name,
+    tradeName,
+    country,
+    yearStarted,
+    memberCount,
+    contactPhone,
+    contactEmail,
+    mainActivity,
+    mainProduct,
+    secondaryProducts,
+    certifications,
+    mainMarkets,
+    excludedSectionIds,
+    excludedIndicatorIds,
+    childOrgCount,
+    step,
+  ]);
 
   useEffect(() => {
     if (!org || !token) return;
@@ -360,7 +478,7 @@ export function AssessmentProfileWizardPage({
   };
 
   const handlePhoneChange = (raw: string) => {
-    const digits = stripPhonePrefix(raw).slice(0, MAX_PHONE_DIGITS);
+    const digits = stripPhonePrefix(raw).slice(0, PHONE_DIGITS);
     setContactPhone(
       selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : digits
     );
@@ -485,6 +603,7 @@ export function AssessmentProfileWizardPage({
         description: t("app.assessment.profiles.newProfile"),
         variant: "success",
       });
+      if (draftKey) clearDraft(draftKey);
       void navigate({ to: "/assessments/organizational" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -508,6 +627,7 @@ export function AssessmentProfileWizardPage({
 
   const handleBack = () => {
     if (step === 1) {
+      if (draftKey) clearDraft(draftKey);
       void navigate({ to: "/assessments" });
     } else {
       setStep((s) => s - 1);
@@ -757,6 +877,9 @@ export function AssessmentProfileWizardPage({
                   onChange={(e) => {
                     handlePhoneChange(e.target.value);
                   }}
+                  placeholder={t("app.assessment.wizard.phonePlaceholder", {
+                    digits: PHONE_DIGITS,
+                  })}
                   className="mt-1"
                 />
                 {phoneDigitsError && (

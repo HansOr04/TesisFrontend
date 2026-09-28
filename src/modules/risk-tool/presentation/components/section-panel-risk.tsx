@@ -6,6 +6,7 @@ export interface DraftResponseRisk {
   observation: string;
   riskDescription: string;
   riskType: string;
+  manualCritical: boolean;
 }
 
 // RF-05: vista de UN principio a la vez (wizard), mismo patrón que DimensionView
@@ -21,7 +22,8 @@ interface PrincipleViewProps {
     score: number | null,
     observation: string,
     riskDescription: string,
-    riskType: string
+    riskType: string,
+    manualCritical: boolean
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
@@ -67,6 +69,7 @@ export function PrincipleView({
             observation={responses[indicator.id]?.observation ?? ""}
             riskDescription={responses[indicator.id]?.riskDescription ?? ""}
             riskType={responses[indicator.id]?.riskType ?? ""}
+            manualCritical={responses[indicator.id]?.manualCritical ?? false}
             t={t}
             onChange={onChangeKpi}
             onImproveObservation={

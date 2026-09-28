@@ -5,6 +5,7 @@ import { useAuth } from "@/modules/auth/application/auth-context";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
 import { useSetPageHeaderName } from "@/shared/components/page-header-context";
+import { loadDraft, saveDraft, clearDraft } from "@/shared/lib/draft-storage";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
@@ -27,6 +28,7 @@ import {
   enqueueAssessmentSave,
   flushAssessmentQueue,
 } from "@/modules/realtime/infrastructure/offline-queue";
+import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 
 function areDraftsEqual(
   a: Record<string, DraftResponseRisk>,
@@ -54,6 +56,7 @@ export function RiskEvaluationDetailPage() {
 
   const org = auth.organisations?.current;
   const token = auth.currentUser?.accessToken;
+  const draftKey = `evaluation:${evaluationId}`;
 
   const [evaluation, setEvaluation] = useState<AssessmentEvaluationData | null>(
     null
@@ -97,10 +100,29 @@ export function RiskEvaluationDetailPage() {
             observation: r.observation,
             riskDescription: risk?.description ?? "",
             riskType: risk?.riskType ?? "",
+            manualCritical: r.manualCritical,
           };
         }
-        setDraft(initialDraft);
+        // Si la sesión se cerró por accidente con cambios sin guardar, se
+        // recuperan por encima de lo que ya confirmó el servidor.
+        const restored = loadDraft<Record<string, DraftResponseRisk>>(
+          draftKey
+        );
+        setDraft(restored ? { ...initialDraft, ...restored } : initialDraft);
         setSavedDraft(initialDraft);
+        if (
+          restored &&
+          Object.keys(restored).some(
+            (id) =>
+              JSON.stringify(restored[id]) !==
+              JSON.stringify(initialDraft[id])
+          )
+        ) {
+          toast({
+            title: t("app.assessment.wizard.draftRestoredTitle"),
+            description: t("app.assessment.wizard.draftRestoredDescription"),
+          });
+        }
       } catch (err: unknown) {
         console.error("Failed to load Risk evaluation", err);
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -113,12 +135,18 @@ export function RiskEvaluationDetailPage() {
         if (!silent) setLoading(false);
       }
     },
-    [org, token, evaluationId, t]
+    [org, token, evaluationId, draftKey, t]
   );
 
   useEffect(() => {
     void loadEvaluation();
   }, [loadEvaluation]);
+
+  // Persiste el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
+  useEffect(() => {
+    if (Object.keys(draft).length === 0) return;
+    saveDraft(draftKey, draft);
+  }, [draftKey, draft]);
 
   const sections = useMemo(
     () => evaluation?.template.sections ?? [],
@@ -128,7 +156,7 @@ export function RiskEvaluationDetailPage() {
     () =>
       sections.reduce(
         (sum, s) =>
-          sum + s.indicators.filter((i) => i.applicable !== false).length,
+          sum + s.indicators.filter((i) => countsInEvaluation(i)).length,
         0
       ),
     [sections]
@@ -194,11 +222,18 @@ export function RiskEvaluationDetailPage() {
       score: number | null,
       observation: string,
       riskDescription: string,
-      riskType: string
+      riskType: string,
+      manualCritical: boolean
     ) => {
       setDraft((prev) => ({
         ...prev,
-        [indicatorId]: { score, observation, riskDescription, riskType },
+        [indicatorId]: {
+          score,
+          observation,
+          riskDescription,
+          riskType,
+          manualCritical,
+        },
       }));
     },
     []
@@ -225,7 +260,8 @@ export function RiskEvaluationDetailPage() {
           entry.score,
           improved,
           entry.riskDescription,
-          entry.riskType
+          entry.riskType,
+          entry.manualCritical
         );
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -263,6 +299,7 @@ export function RiskEvaluationDetailPage() {
           observation: x.entry.observation,
           riskDescription: x.entry.riskDescription,
           riskType: x.entry.riskType || undefined,
+          manualCritical: x.entry.manualCritical,
         }));
 
       if (responses.length === 0) return true;
@@ -347,7 +384,7 @@ export function RiskEvaluationDetailPage() {
       const section = sections[sectionIdx];
       if (!section) return false;
       return section.indicators
-        .filter((ind) => ind.applicable !== false)
+        .filter((ind) => countsInEvaluation(ind))
         .some((ind) => draft[ind.id]?.score == null);
     },
     [sections, draft]
@@ -365,6 +402,7 @@ export function RiskEvaluationDetailPage() {
     const ok = await savePrinciple(principleIndex);
     if (!ok) return;
     if (principleIndex >= sections.length - 1) {
+      clearDraft(draftKey);
       void navigate({
         to: "/assessments/risk/$evaluationId/summary",
         params: { evaluationId },
@@ -378,6 +416,7 @@ export function RiskEvaluationDetailPage() {
     sections.length,
     navigate,
     evaluationId,
+    draftKey,
     missingApplicableKpi,
     t,
   ]);
@@ -406,7 +445,7 @@ export function RiskEvaluationDetailPage() {
   const isCompleted = evaluation.status === "COMPLETED";
   const currentSection = sections[principleIndex];
   const currentSectionIndicators =
-    currentSection?.indicators.filter((ind) => ind.applicable !== false) ?? [];
+    currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
   const currentSectionAverage = currentSection
     ? (() => {
