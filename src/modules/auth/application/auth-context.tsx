@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   useCallback,
@@ -14,6 +15,7 @@ import {
   logoutSession,
 } from "../infrastructure/auth-api";
 import { refreshAccessToken, sessionToken } from "@/shared/api/session-token";
+import { SessionExpiredDialog } from "@/modules/auth/presentation/session-expired-dialog";
 
 const ORG_KEY = "assessment.currentOrganisation";
 
@@ -21,6 +23,8 @@ export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
+  /** Reanuda la sesión caducada sin salir de la pantalla en la que se está. */
+  resumeSession: (password: string) => Promise<void>;
   setCurrentOrganisation: (organisation: string) => void;
   /** Roles del usuario en la organización actual. */
   currentRoles: string[];
@@ -43,10 +47,12 @@ function pickOrganisation(allowed: string[]): string {
 // misma forma que usan las páginas (currentUser.accessToken,
 // organisations.current, isActuallySuperAdmin).
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<AuthState>({
     status: "loading",
     roles: [],
     isActuallySuperAdmin: false,
+    sessionExpired: false,
   });
 
   const hydrate = useCallback(async (token: string) => {
@@ -64,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       organisations: { allowed, current: pickOrganisation(allowed) },
       roles: me.organisations,
       isActuallySuperAdmin: me.isSuperAdmin,
+      sessionExpired: false,
     });
   }, []);
 
@@ -92,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           status: "anonymous",
           roles: [],
           isActuallySuperAdmin: false,
+          sessionExpired: false,
         });
       });
     return () => {
@@ -106,15 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionToken.subscribe((token) => {
         setState((s) => {
           if (s.status !== "authenticated" || !s.currentUser) return s;
-          if (!token) {
-            return {
-              status: "anonymous",
-              roles: [],
-              isActuallySuperAdmin: false,
-            };
-          }
+          // Antes se cerraba la sesión aquí mismo. Eso desmontaba la
+          // aplicación y se perdía lo que hubiera en pantalla sin guardar;
+          // ahora solo se marca como caducada y el diálogo pide la clave.
+          if (!token) return { ...s, sessionExpired: true };
           return {
             ...s,
+            sessionExpired: false,
             currentUser: { ...s.currentUser, accessToken: token },
           };
         });
@@ -141,10 +147,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applySession]
   );
 
+  // Reanudar no es volver a entrar: se conserva la organización actual y se
+  // refrescan las consultas que hayan fallado mientras la sesión estaba caída.
+  const resumeSession = useCallback(
+    async (password: string) => {
+      const email = state.currentUser?.email;
+      if (!email) return;
+      const session = await loginWithPassword(email, password);
+      sessionToken.set(session.accessToken);
+      await hydrate(session.accessToken);
+      await queryClient.invalidateQueries();
+    },
+    [state.currentUser?.email, hydrate, queryClient]
+  );
+
   const logout = useCallback(() => {
     void logoutSession();
     sessionToken.set(null);
-    setState({ status: "anonymous", roles: [], isActuallySuperAdmin: false });
+    setState({
+      status: "anonymous",
+      roles: [],
+      isActuallySuperAdmin: false,
+      sessionExpired: false,
+    });
   }, []);
 
   const setCurrentOrganisation = useCallback((organisation: string) => {
@@ -162,15 +187,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       loginGoogle,
       logout,
+      resumeSession,
       setCurrentOrganisation,
       currentRoles:
         state.roles.find((r) => r.organisation === state.organisations?.current)
           ?.roles ?? [],
     }),
-    [state, login, loginGoogle, logout, setCurrentOrganisation]
+    [state, login, loginGoogle, logout, resumeSession, setCurrentOrganisation]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      {state.status === "authenticated" && state.sessionExpired && (
+        <SessionExpiredDialog
+          email={state.currentUser?.email ?? ""}
+          onResume={resumeSession}
+          onLogout={logout}
+        />
+      )}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

@@ -958,5 +958,11 @@
   "app.assessment.wizard.loading": "Cargando datos…",
   "app.assessment.wizard.loadFailed": "No se pudieron cargar los datos",
   "app.assessment.wizard.edit": "Editar datos",
-  "app.assessment.profiles.applicabilityAction": "KPI aplicables"
+  "app.assessment.profiles.applicabilityAction": "KPI aplicables",
+  "app.session.expiredTitle": "Tu sesión caducó",
+  "app.session.expiredDescription": "No cerramos nada: la pantalla sigue como la dejaste. Escribe tu contraseña para continuar desde aquí mismo.",
+  "app.session.expiredResume": "Continuar",
+  "app.session.expiredResuming": "Entrando…",
+  "app.session.expiredLogout": "Salir de todos modos",
+  "app.session.expiredFailed": "No se pudo reanudar la sesión"
 }

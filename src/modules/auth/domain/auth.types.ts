@@ -35,4 +35,11 @@ export interface AuthState {
   roles: OrganisationRoles[];
   /** true si el usuario real es superadmin global. */
   isActuallySuperAdmin: boolean;
+  /**
+   * El token caducó y no se pudo renovar estando dentro de la aplicación.
+   * La sesión NO se cierra: la pantalla se queda como estaba y se pide la
+   * contraseña para seguir, porque cerrarla perdería lo que hubiera sin
+   * guardar.
+   */
+  sessionExpired: boolean;
 }
