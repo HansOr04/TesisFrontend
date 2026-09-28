@@ -10,10 +10,11 @@ describe("KpiScoreRow (FE3-B03)", () => {
       <KpiScoreRow
         indicatorId="i1"
         number={1}
-        code="AZ-1.1"
+        code="KPI 1.1"
         name="KPI 1"
         score={null}
         observation=""
+        manualCritical={false}
         t={t}
         onChange={vi.fn()}
       />
@@ -30,10 +31,11 @@ describe("KpiScoreRow (FE3-B03)", () => {
       <KpiScoreRow
         indicatorId="i1"
         number={1}
-        code="AZ-1.1"
+        code="KPI 1.1"
         name="KPI 1"
         score={null}
         observation="obs previa"
+        manualCritical={false}
         t={t}
         onChange={onChange}
       />
@@ -42,7 +44,7 @@ describe("KpiScoreRow (FE3-B03)", () => {
     fireEvent.click(screen.getByText("KPI 1"));
     fireEvent.click(screen.getByText("8"));
 
-    expect(onChange).toHaveBeenCalledWith("i1", 8, "obs previa");
+    expect(onChange).toHaveBeenCalledWith("i1", 8, "obs previa", false);
   });
 
   it("shows the observation warning only when a score is selected but no observation is set", () => {
@@ -50,10 +52,11 @@ describe("KpiScoreRow (FE3-B03)", () => {
       <KpiScoreRow
         indicatorId="i1"
         number={1}
-        code="AZ-1.1"
+        code="KPI 1.1"
         name="KPI 1"
         score={4}
         observation=""
+        manualCritical={false}
         t={t}
         onChange={vi.fn()}
       />
@@ -70,10 +73,11 @@ describe("KpiScoreRow (FE3-B03)", () => {
       <KpiScoreRow
         indicatorId="i1"
         number={1}
-        code="AZ-1.1"
+        code="KPI 1.1"
         name="KPI 1"
         score={4}
         observation="Justificación concreta"
+        manualCritical={false}
         t={t}
         onChange={vi.fn()}
       />
@@ -90,10 +94,11 @@ describe("KpiScoreRow (FE3-B03)", () => {
       <KpiScoreRow
         indicatorId="i1"
         number={1}
-        code="AZ-1.1"
+        code="KPI 1.1"
         name="KPI 1"
         score={9}
         observation="obs"
+        manualCritical={false}
         t={t}
         onChange={vi.fn()}
       />

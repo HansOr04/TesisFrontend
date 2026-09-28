@@ -251,11 +251,17 @@ function AppShellInner() {
               <div className="truncate text-[11px] text-white/50">
                 {auth.currentRoles.length > 0
                   ? auth.currentRoles
-                      .map((r) => r.replace("assessment_", ""))
+                      .map((r) =>
+                        r === "assessment_admin"
+                          ? t("app.users.roleAdmin")
+                          : r === "assessment_evaluator"
+                            ? t("app.users.roleEvaluator")
+                            : r
+                      )
                       .join(", ")
                   : auth.isActuallySuperAdmin
-                    ? "superadmin"
-                    : "usuario"}
+                    ? t("app.users.roleSuperAdmin")
+                    : t("app.users.roleNone")}
               </div>
             </div>
             <button

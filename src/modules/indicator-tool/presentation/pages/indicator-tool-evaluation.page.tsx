@@ -16,6 +16,7 @@ import {
 } from "@/modules/assessment-core/presentation/components/section-panel";
 import { RingGauge } from "@/modules/assessment-core/presentation/components/ring-gauge";
 import { useSetPageHeaderName } from "@/shared/components/page-header-context";
+import { loadDraft, saveDraft, clearDraft } from "@/shared/lib/draft-storage";
 import { useAssessmentSession } from "@/modules/realtime/application/use-assessment-session";
 import { HttpResponseError } from "@/shared/lib/http-response-error";
 import {
@@ -50,6 +51,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
 
   const org = auth.organisations?.current;
   const token = auth.currentUser?.accessToken;
+  const draftKey = `evaluation:${evaluationId}`;
 
   const [evaluation, setEvaluation] = useState<AssessmentEvaluationData | null>(
     null
@@ -85,10 +87,27 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
           initialDraft[r.indicatorId] = {
             score: r.score,
             observation: r.observation,
+            manualCritical: r.manualCritical,
           };
         }
-        setDraft(initialDraft);
+        // Si la sesión se cerró por accidente con cambios sin guardar, se
+        // recuperan por encima de lo que ya confirmó el servidor.
+        const restored = loadDraft<Record<string, DraftResponse>>(draftKey);
+        setDraft(restored ? { ...initialDraft, ...restored } : initialDraft);
         setSavedDraft(initialDraft);
+        if (
+          restored &&
+          Object.keys(restored).some(
+            (id) =>
+              JSON.stringify(restored[id]) !==
+              JSON.stringify(initialDraft[id])
+          )
+        ) {
+          toast({
+            title: t("app.assessment.wizard.draftRestoredTitle"),
+            description: t("app.assessment.wizard.draftRestoredDescription"),
+          });
+        }
       } catch (err: unknown) {
         console.error("Failed to load Organizational evaluation", err);
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -101,12 +120,18 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
         if (!silent) setLoading(false);
       }
     },
-    [def, org, token, evaluationId, t]
+    [def, org, token, evaluationId, draftKey, t]
   );
 
   useEffect(() => {
     void loadEvaluation();
   }, [loadEvaluation]);
+
+  // Persiste el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
+  useEffect(() => {
+    if (Object.keys(draft).length === 0) return;
+    saveDraft(draftKey, draft);
+  }, [draftKey, draft]);
 
   const sections = useMemo(
     () => evaluation?.template.sections ?? [],
@@ -179,8 +204,16 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   }, [flushQueue]);
 
   const handleChangeKpi = useCallback(
-    (indicatorId: string, score: number | null, observation: string) => {
-      setDraft((prev) => ({ ...prev, [indicatorId]: { score, observation } }));
+    (
+      indicatorId: string,
+      score: number | null,
+      observation: string,
+      manualCritical: boolean
+    ) => {
+      setDraft((prev) => ({
+        ...prev,
+        [indicatorId]: { score, observation, manualCritical },
+      }));
     },
     []
   );
@@ -201,7 +234,12 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
           entry.observation,
           refreshedToken
         );
-        handleChangeKpi(indicatorId, entry.score, improved);
+        handleChangeKpi(
+          indicatorId,
+          entry.score,
+          improved,
+          entry.manualCritical
+        );
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
         toast({
@@ -236,6 +274,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
           indicatorId: x.indicatorId,
           score: x.entry.score,
           observation: x.entry.observation,
+          manualCritical: x.entry.manualCritical,
         }));
 
       if (responses.length === 0) return true;
@@ -328,6 +367,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
     const ok = await saveDimension(dimensionIndex);
     if (!ok) return;
     if (dimensionIndex >= sections.length - 1) {
+      clearDraft(draftKey);
       void navigate({
         to: def.routes.summary,
         params: { evaluationId },
@@ -342,6 +382,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
     sections.length,
     navigate,
     evaluationId,
+    draftKey,
     missingApplicableKpi,
     t,
   ]);

@@ -189,6 +189,7 @@ export interface AssessmentKpiResponseRiskInput {
   observation: string;
   riskDescription: string;
   riskType?: string;
+  manualCritical?: boolean;
 }
 
 export async function upsertRiskResponses(
