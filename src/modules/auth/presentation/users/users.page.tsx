@@ -257,7 +257,7 @@ export function UsersPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {u.isSuperAdmin && (
                           <span className="rounded-lg bg-warning/15 px-2 py-1 text-xs font-bold text-warning">
-                            Superadmin
+                            {t("app.users.roleSuperAdmin")}
                           </span>
                         )}
                         <span
@@ -270,7 +270,10 @@ export function UsersPage() {
                                 : "bg-muted text-muted-foreground"
                           )}
                         >
-                          {ROLE_OPTIONS.find((r) => r.code === role)?.label}
+                          {t(
+                            ROLE_OPTIONS.find((r) => r.code === role)?.label ??
+                              "app.users.roleNone"
+                          )}
                         </span>
                       </div>
                     </td>
@@ -593,9 +596,11 @@ function UserFormDialog({
                     onChange={() => setV({ ...v, roleCode: r.code })}
                   />
                   <span>
-                    <span className="block text-sm font-bold">{r.label}</span>
+                    <span className="block text-sm font-bold">
+                      {t(r.label)}
+                    </span>
                     <span className="block text-xs leading-relaxed text-muted-foreground">
-                      {r.description}
+                      {t(r.description)}
                     </span>
                   </span>
                 </label>
