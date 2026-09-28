@@ -72,6 +72,7 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
   const [missingMessage, setMissingMessage] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [retaking, setRetaking] = useState(false);
 
   const [checkingInconsistencies, setCheckingInconsistencies] = useState(false);
   const [inconsistencyFindings, setInconsistencyFindings] = useState<
@@ -246,6 +247,33 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
     },
     [def, org, token, evaluationId, narrative, t]
   );
+
+  // Volver a tomar la evaluación: un ciclo nuevo para la misma organización.
+  // El anterior no se toca — queda en el historial, que es justo lo que se
+  // está mirando cuando se pulsa este botón.
+  const handleRetake = useCallback(async () => {
+    const profileId = evaluation?.profile.id;
+    if (!org || !token || !profileId) return;
+    if (!window.confirm(t("app.assessment.common.newEvaluationConfirm")))
+      return;
+    setRetaking(true);
+    try {
+      const created = await def.api.createEvaluation(org, { profileId }, token);
+      void def.queries.invalidateAll(queryClient, org);
+      void navigate({
+        to: def.routes.evaluation,
+        params: { evaluationId: created.id },
+      });
+    } catch (err: unknown) {
+      toast({
+        title: t("app.common.error"),
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setRetaking(false);
+    }
+  }, [def, org, token, evaluation?.profile.id, queryClient, navigate, t]);
 
   const criticalIndicators = useMemo(() => {
     if (!evaluation) return [];
@@ -510,6 +538,8 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
         history={evaluationHistory}
         t={t}
         sectionLabel={t(`${def.i18n}.section`)}
+        onRetake={() => void handleRetake()}
+        retaking={retaking}
       />
 
       <ImpactPriorityPanel

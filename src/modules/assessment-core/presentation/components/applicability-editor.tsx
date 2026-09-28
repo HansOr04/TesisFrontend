@@ -316,6 +316,14 @@ export function ApplicabilityEditor({
                               <span className={cn(excluded && "line-through")}>
                                 {indicator.name}
                               </span>
+                              {/* Un KPI desactivado en la plantilla sigue en la
+                                  lista para poder verlo y decidir, pero se marca
+                                  porque no cuenta en las evaluaciones nuevas. */}
+                              {!indicator.active && (
+                                <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {tr("app.assessment.admin.inactive")}
+                                </span>
+                              )}
                             </span>
                           </label>
                         );
