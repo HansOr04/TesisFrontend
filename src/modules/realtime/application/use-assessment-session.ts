@@ -17,10 +17,13 @@ export function useAssessmentSession(
   org: string | undefined,
   evaluationId: string | undefined,
   token: string | undefined,
-  onScoreUpdated: (payload: AssessmentScoreUpdatedPayload) => void
+  onScoreUpdated: (payload: AssessmentScoreUpdatedPayload) => void,
+  currentUserId?: string
 ): void {
   const callbackRef = useRef(onScoreUpdated);
   callbackRef.current = onScoreUpdated;
+  const userIdRef = useRef(currentUserId);
+  userIdRef.current = currentUserId;
 
   useEffect(() => {
     if (!org || !evaluationId || !token || !baseURL) return;
@@ -40,6 +43,9 @@ export function useAssessmentSession(
     });
 
     socket.on("score.updated", (payload: AssessmentScoreUpdatedPayload) => {
+      // El servidor también avisa al autor del guardado; ese eco no trae nada
+      // nuevo y solo provocaría recargar la evaluación entera tras cada guardado.
+      if (payload?.scoredBy && payload.scoredBy === userIdRef.current) return;
       if (payload?.evaluationId === evaluationId) {
         callbackRef.current(payload);
       }
