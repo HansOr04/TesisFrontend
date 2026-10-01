@@ -183,7 +183,13 @@ export function RiskEvaluationDetailPage() {
     void loadEvaluation(true);
   }, [hasUnsavedChanges, loadEvaluation, t]);
 
-  useAssessmentSession(org, evaluationId, token, handleRemoteScoreUpdate);
+  useAssessmentSession(
+    org,
+    evaluationId,
+    token,
+    handleRemoteScoreUpdate,
+    auth.currentUser?.id
+  );
 
   // RNF-03: reintenta lo que quedó pendiente en la cola local (por ejemplo,
   // de una sesión anterior sin red) apenas monta y cada vez que vuelve la
