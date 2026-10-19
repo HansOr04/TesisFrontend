@@ -23,9 +23,9 @@ import {
 } from "@/modules/risk-tool/presentation/components/section-panel-risk";
 import { RingGauge } from "@/modules/assessment-core/presentation/components/ring-gauge";
 import { useAssessmentSession } from "@/modules/realtime/application/use-assessment-session";
-import { HttpResponseError } from "@/shared/lib/http-response-error";
 import {
   enqueueAssessmentSave,
+  shouldQueueOffline,
   flushAssessmentQueue,
 } from "@/modules/realtime/infrastructure/offline-queue";
 import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
@@ -345,7 +345,7 @@ export function RiskEvaluationDetailPage() {
         setSavedDraft(draft);
         return true;
       } catch (err: unknown) {
-        if (!(err instanceof HttpResponseError)) {
+        if (shouldQueueOffline(err)) {
           await enqueueAssessmentSave<AssessmentKpiResponseRiskInput[]>({
             tool: "risk",
             org,

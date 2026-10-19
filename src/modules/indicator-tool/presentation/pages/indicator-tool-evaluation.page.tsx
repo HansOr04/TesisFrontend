@@ -18,9 +18,9 @@ import { RingGauge } from "@/modules/assessment-core/presentation/components/rin
 import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { loadDraft, saveDraft, clearDraft } from "@/shared/lib/draft-storage";
 import { useAssessmentSession } from "@/modules/realtime/application/use-assessment-session";
-import { HttpResponseError } from "@/shared/lib/http-response-error";
 import {
   enqueueAssessmentSave,
+  shouldQueueOffline,
   flushAssessmentQueue,
 } from "@/modules/realtime/infrastructure/offline-queue";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
@@ -313,9 +313,9 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
       } catch (err: unknown) {
         // RNF-03: un error de red (no un rechazo del servidor) no debe
         // frenar el taller — se guarda localmente y se reintenta solo.
-        if (!(err instanceof HttpResponseError)) {
+        if (shouldQueueOffline(err)) {
           await enqueueAssessmentSave<AssessmentKpiResponseInput[]>({
-            tool: "organizational",
+            tool: def.slug,
             org,
             evaluationId,
             responses,
