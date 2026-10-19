@@ -18,6 +18,7 @@ import {
   FilePlus2,
 } from "lucide-react";
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
+import { exportAssessmentDashboard } from "@/modules/assessment-core/infrastructure/assessment-api";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
 
 export function IndicatorToolListPage({ def }: { def: IndicatorToolUi }) {
@@ -35,6 +36,29 @@ export function IndicatorToolListPage({ def }: { def: IndicatorToolUi }) {
   const [startingProfileId, setStartingProfileId] = useState<string | null>(
     null
   );
+  const [exporting, setExporting] = useState(false);
+
+  // Descarga el panel consolidado de las organizaciones en esta herramienta.
+  const handleExport = async () => {
+    if (!org) return;
+    setExporting(true);
+    try {
+      await exportAssessmentDashboard(
+        org,
+        { tool: def.slug === "capacity" ? "CAPACITY" : "ORGANIZATIONAL" },
+        token
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      toast({
+        title: t("app.common.error"),
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleOpenEvaluation = async (
     profileId: string,
@@ -136,9 +160,15 @@ export function IndicatorToolListPage({ def }: { def: IndicatorToolUi }) {
             <Pencil className="h-4 w-4 mr-1" />
             {t("app.assessment.admin.manageStructure")}
           </Button>
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            onClick={() => void handleExport()}
+            disabled={exporting || !org}
+          >
             <Download className="h-4 w-4 mr-1" />
-            {t("app.assessment.panel.exportReport")}
+            {exporting
+              ? t("app.assessment.common.exporting")
+              : t("app.assessment.panel.exportReport")}
           </Button>
         </div>
       </div>
