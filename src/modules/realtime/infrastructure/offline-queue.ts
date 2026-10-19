@@ -1,10 +1,19 @@
 import { createStore, del, get, keys, set } from "idb-keyval";
+import { HttpResponseError } from "@/shared/lib/http-response-error";
 
 // RNF-03 (F7-B03): las calificaciones del taller no deben perderse si la red
 // se cae a mitad de guardar. Cada mutación que falla por un error de red (no
 // por un rechazo del servidor) se persiste aquí en IndexedDB y se reintenta
 // cuando vuelve la conexión — sin depender de que la pestaña siga abierta.
 const store = createStore("assessment-offline-queue", "pending-saves");
+
+/**
+ * Solo un error de red se encola. Si el servidor respondió (validación,
+ * permisos, evaluación cerrada), reintentar no lo arregla y hay que avisar.
+ */
+export function shouldQueueOffline(error: unknown): boolean {
+  return !(error instanceof HttpResponseError);
+}
 
 export interface AssessmentQueuedSave<TResponses> {
   id: string;
