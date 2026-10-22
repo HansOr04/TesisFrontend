@@ -1,4 +1,4 @@
-import { History, Loader2, RotateCcw } from "lucide-react";
+import { Eye, History, Loader2, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { LineChart } from "@/shared/components/line-chart";
@@ -14,6 +14,10 @@ interface EvolutionHistoryProps {
   /** Inicia un ciclo nuevo para la misma organización y herramienta. */
   onRetake?: () => void;
   retaking?: boolean;
+  /** Evaluación desde la que se abre el historial: su columna no ofrece "Ver". */
+  currentEvaluationId?: string;
+  /** Abre una evaluación del historial para ver la nota de cada KPI. */
+  onOpenEvaluation?: (evaluationId: string) => void;
 }
 
 // Más allá de seis cortes la tabla no cabe sin scroll horizontal incómodo;
@@ -68,6 +72,8 @@ export function EvolutionHistory({
   sectionLabel,
   onRetake,
   retaking = false,
+  currentEvaluationId,
+  onOpenEvaluation,
 }: EvolutionHistoryProps) {
   // El orden del backend no está garantizado y aquí la cronología es el eje
   // de toda la lectura, así que se ordena antes de recortar.
@@ -275,6 +281,43 @@ export function EvolutionHistory({
                     ))}
                     {previous && <td className="border-l border-border" />}
                   </tr>
+
+                  {/* La tabla compara dimensiones; el detalle KPI por KPI de
+                      cada corte se consulta abriendo esa evaluación, que se
+                      muestra en solo lectura por estar completada. */}
+                  {onOpenEvaluation && (
+                    <tr className="border-t border-border">
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {t("app.assessment.history.rowDetail")}
+                      </td>
+                      {shown.map((h, index) => (
+                        <td
+                          key={h.evaluationId}
+                          className={`px-2 py-1.5 text-center ${columnClass(index) ?? ""}`}
+                        >
+                          {h.evaluationId === currentEvaluationId ? (
+                            <span className="text-xs text-muted-foreground">
+                              {t("app.assessment.history.current")}
+                            </span>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2"
+                              onClick={() => onOpenEvaluation(h.evaluationId)}
+                              aria-label={t("app.assessment.history.openAria", {
+                                date: formatDate(h.completedAt),
+                              })}
+                            >
+                              <Eye className="h-4 w-4" />
+                              {t("app.assessment.history.open")}
+                            </Button>
+                          )}
+                        </td>
+                      ))}
+                      {previous && <td className="border-l border-border" />}
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

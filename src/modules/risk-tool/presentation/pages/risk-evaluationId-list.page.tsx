@@ -74,6 +74,9 @@ export function RiskEvaluationDetailPage() {
   const [improvingIndicatorId, setImprovingIndicatorId] = useState<
     string | null
   >(null);
+  // Una evaluación completada tiene sus puntajes congelados (el servidor
+  // rechaza cambios): se abre para consultar lo que se calificó ese día.
+  const readOnly = evaluation?.status === "COMPLETED";
 
   const loadEvaluation = useCallback(
     async (silent = false) => {
@@ -102,6 +105,14 @@ export function RiskEvaluationDetailPage() {
             riskType: risk?.riskType ?? "",
             manualCritical: r.manualCritical,
           };
+        }
+        if (data.status === "COMPLETED") {
+          // Completada: se muestra exactamente lo que guardó el servidor. Un
+          // borrador local ya no se podría guardar, así que se descarta.
+          clearDraft(draftKey);
+          setDraft(initialDraft);
+          setSavedDraft(initialDraft);
+          return;
         }
         // Si la sesión se cerró por accidente con cambios sin guardar, se
         // recuperan por encima de lo que ya confirmó el servidor.
@@ -144,9 +155,9 @@ export function RiskEvaluationDetailPage() {
 
   // Persiste el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
   useEffect(() => {
-    if (Object.keys(draft).length === 0) return;
+    if (readOnly || Object.keys(draft).length === 0) return;
     saveDraft(draftKey, draft);
-  }, [draftKey, draft]);
+  }, [draftKey, draft, readOnly]);
 
   const sections = useMemo(
     () => evaluation?.template.sections ?? [],
@@ -397,6 +408,17 @@ export function RiskEvaluationDetailPage() {
   );
 
   const handleNext = useCallback(async () => {
+    if (readOnly) {
+      if (principleIndex >= sections.length - 1) {
+        void navigate({
+          to: "/assessments/risk/$evaluationId/summary",
+          params: { evaluationId },
+        });
+      } else {
+        setPrincipleIndex((prev) => prev + 1);
+      }
+      return;
+    }
     if (missingApplicableKpi(principleIndex)) {
       toast({
         title: t("app.common.error"),
@@ -424,13 +446,14 @@ export function RiskEvaluationDetailPage() {
     evaluationId,
     draftKey,
     missingApplicableKpi,
+    readOnly,
     t,
   ]);
 
   const handlePrevious = useCallback(async () => {
-    await savePrinciple(principleIndex);
+    if (!readOnly) await savePrinciple(principleIndex);
     setPrincipleIndex((prev) => Math.max(prev - 1, 0));
-  }, [savePrinciple, principleIndex]);
+  }, [savePrinciple, principleIndex, readOnly]);
 
   if (loading) {
     return (
@@ -526,18 +549,28 @@ export function RiskEvaluationDetailPage() {
                 void handleImproveObservation(indicatorId)
               }
               improvingIndicatorId={improvingIndicatorId}
+              readOnly={readOnly}
             />
           )}
 
           <div className="flex items-center justify-between mt-6">
             <span className="text-xs text-muted-foreground">
-              {pendingSyncCount > 0
-                ? `${t("app.assessment.organizational.pendingSync")} (${pendingSyncCount})`
-                : hasUnsavedChanges
-                  ? t("app.assessment.organizational.unsavedChanges")
-                  : lastSaved
-                    ? `${t("app.assessment.organizational.autoSaved")} ${lastSaved.toLocaleTimeString()}`
-                    : null}
+              {readOnly
+                ? t("app.assessment.history.readOnlyNotice", {
+                    date: evaluation.completedAt
+                      ? new Date(evaluation.completedAt).toLocaleDateString(
+                          "es-EC",
+                          { day: "2-digit", month: "long", year: "numeric" }
+                        )
+                      : "—",
+                  })
+                : pendingSyncCount > 0
+                  ? `${t("app.assessment.organizational.pendingSync")} (${pendingSyncCount})`
+                  : hasUnsavedChanges
+                    ? t("app.assessment.organizational.unsavedChanges")
+                    : lastSaved
+                      ? `${t("app.assessment.organizational.autoSaved")} ${lastSaved.toLocaleTimeString()}`
+                      : null}
             </span>
             <div className="flex gap-2">
               {principleIndex > 0 && (
@@ -550,13 +583,15 @@ export function RiskEvaluationDetailPage() {
                   {t("app.assessment.risk.previousPrinciple")}
                 </Button>
               )}
-              <Button
-                variant="outline"
-                onClick={handleSaveClick}
-                disabled={saving}
-              >
-                {t("app.assessment.organizational.save")}
-              </Button>
+              {!readOnly && (
+                <Button
+                  variant="outline"
+                  onClick={handleSaveClick}
+                  disabled={saving}
+                >
+                  {t("app.assessment.organizational.save")}
+                </Button>
+              )}
               <Button onClick={() => void handleNext()} disabled={saving}>
                 {principleIndex === sections.length - 1
                   ? t("app.assessment.organizational.viewSummary")
