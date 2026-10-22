@@ -586,6 +586,13 @@ export function RiskSummaryPage() {
         sectionLabel={t("app.assessment.risk.principle")}
         onRetake={() => void handleRetake()}
         retaking={retaking}
+        currentEvaluationId={evaluationId}
+        onOpenEvaluation={(id) =>
+          void navigate({
+            to: "/assessments/risk/$evaluationId",
+            params: { evaluationId: id },
+          })
+        }
       />
 
       <ImpactPriorityPanel

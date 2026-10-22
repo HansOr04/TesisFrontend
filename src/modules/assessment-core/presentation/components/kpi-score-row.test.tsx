@@ -106,4 +106,36 @@ describe("KpiScoreRow (FE3-B03)", () => {
 
     expect(container.querySelector(".rounded-full")?.textContent).toBe("9");
   });
+
+  it("in read-only mode shows what was recorded and ignores clicks", () => {
+    const onChange = vi.fn();
+    render(
+      <KpiScoreRow
+        indicatorId="i1"
+        number={1}
+        code="KPI 1.1"
+        name="KPI 1"
+        score={6}
+        observation="Registrada en el primer taller"
+        manualCritical={false}
+        t={t}
+        onChange={onChange}
+        onImproveObservation={vi.fn()}
+        readOnly
+      />
+    );
+
+    fireEvent.click(screen.getByText("KPI 1"));
+    fireEvent.click(screen.getByRole("button", { name: "8" }));
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "8" })).toBeDisabled();
+    expect(
+      screen.getByDisplayValue("Registrada en el primer taller")
+    ).toHaveAttribute("readonly");
+    expect(screen.getByRole("switch")).toBeDisabled();
+    expect(
+      screen.queryByText("app.assessment.organizational.improveObservation")
+    ).not.toBeInTheDocument();
+  });
 });

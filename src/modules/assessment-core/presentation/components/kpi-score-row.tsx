@@ -32,6 +32,8 @@ interface KpiScoreRowProps {
   ) => void;
   onImproveObservation?: () => void;
   improvingObservation?: boolean;
+  /** Evaluación completada: se ve la nota y lo registrado, sin poder cambiarlo. */
+  readOnly?: boolean;
 }
 
 const SCORE_BUTTONS = Array.from({ length: 10 }, (_, i) => i + 1);
@@ -50,11 +52,12 @@ export function KpiScoreRow({
   onChange,
   onImproveObservation,
   improvingObservation,
+  readOnly = false,
 }: KpiScoreRowProps) {
   const [expanded, setExpanded] = useState(false);
   const isAnswered = score !== null;
   const showObservationWarning =
-    score !== null && observation.trim().length === 0;
+    !readOnly && score !== null && observation.trim().length === 0;
   const isAutoCritical = score !== null && score <= 5;
 
   return (
@@ -126,6 +129,7 @@ export function KpiScoreRow({
                 <button
                   key={n}
                   type="button"
+                  disabled={readOnly}
                   onClick={() => {
                     onChange(indicatorId, n, observation, manualCritical);
                   }}
@@ -137,7 +141,9 @@ export function KpiScoreRow({
                     selected &&
                       (isLow
                         ? "border-danger/30 ring-2 ring-red-300"
-                        : "border-success/30 ring-2 ring-green-300")
+                        : "border-success/30 ring-2 ring-green-300"),
+                    readOnly && "cursor-default",
+                    readOnly && !selected && "opacity-40"
                   )}
                 >
                   {n}
@@ -147,6 +153,7 @@ export function KpiScoreRow({
           </div>
           <Textarea
             value={observation}
+            readOnly={readOnly}
             onChange={(e) => {
               onChange(indicatorId, score, e.target.value, manualCritical);
             }}
@@ -168,13 +175,15 @@ export function KpiScoreRow({
             </span>
             <Switch
               checked={manualCritical}
+              disabled={readOnly}
               onCheckedChange={(next) => {
                 onChange(indicatorId, score, observation, next);
               }}
               aria-label={t("app.assessment.organizational.manualCritical")}
             />
           </label>
-          {onImproveObservation &&
+          {!readOnly &&
+            onImproveObservation &&
             score !== null &&
             observation.trim().length > 0 && (
               <Button

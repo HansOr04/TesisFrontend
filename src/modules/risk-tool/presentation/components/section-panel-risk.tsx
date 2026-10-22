@@ -27,6 +27,8 @@ interface PrincipleViewProps {
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
+  /** Evaluación completada: los KPI se muestran sin poder editarse. */
+  readOnly?: boolean;
 }
 
 export function PrincipleView({
@@ -38,6 +40,7 @@ export function PrincipleView({
   onChangeKpi,
   onImproveObservation,
   improvingIndicatorId,
+  readOnly = false,
 }: PrincipleViewProps) {
   const answered = indicators.filter(
     (i) => responses[i.id]?.score != null
@@ -80,6 +83,7 @@ export function PrincipleView({
                 : undefined
             }
             improvingObservation={improvingIndicatorId === indicator.id}
+            readOnly={readOnly}
           />
         ))}
       </div>

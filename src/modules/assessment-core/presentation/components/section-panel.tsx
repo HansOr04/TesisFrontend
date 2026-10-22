@@ -24,6 +24,8 @@ interface DimensionViewProps {
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
+  /** Evaluación completada: los KPI se muestran sin poder editarse. */
+  readOnly?: boolean;
   /** Sobrescribe las etiquetas específicas de Organizational ("Dimensión", "KPI completados")
    * para reutilizar este componente en Capacity ("Área") sin duplicarlo. */
   labels?: { dimension: string; indicatorsCompleted: string };
@@ -38,6 +40,7 @@ export function DimensionView({
   onChangeKpi,
   onImproveObservation,
   improvingIndicatorId,
+  readOnly = false,
   labels,
 }: DimensionViewProps) {
   const answered = indicators.filter(
@@ -84,6 +87,7 @@ export function DimensionView({
                 : undefined
             }
             improvingObservation={improvingIndicatorId === indicator.id}
+            readOnly={readOnly}
           />
         ))}
       </div>
