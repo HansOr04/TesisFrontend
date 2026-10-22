@@ -70,6 +70,9 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   const [improvingIndicatorId, setImprovingIndicatorId] = useState<
     string | null
   >(null);
+  // Una evaluación completada tiene sus puntajes congelados (el servidor
+  // rechaza cambios): se abre para consultar lo que se calificó ese día.
+  const readOnly = evaluation?.status === "COMPLETED";
 
   const loadEvaluation = useCallback(
     async (silent = false) => {
@@ -90,6 +93,14 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
             observation: r.observation,
             manualCritical: r.manualCritical,
           };
+        }
+        if (data.status === "COMPLETED") {
+          // Completada: se muestra exactamente lo que guardó el servidor. Un
+          // borrador local ya no se podría guardar, así que se descarta.
+          clearDraft(draftKey);
+          setDraft(initialDraft);
+          setSavedDraft(initialDraft);
+          return;
         }
         // Si la sesión se cerró por accidente con cambios sin guardar, se
         // recuperan por encima de lo que ya confirmó el servidor.
@@ -130,9 +141,9 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
 
   // Persiste el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
   useEffect(() => {
-    if (Object.keys(draft).length === 0) return;
+    if (readOnly || Object.keys(draft).length === 0) return;
     saveDraft(draftKey, draft);
-  }, [draftKey, draft]);
+  }, [draftKey, draft, readOnly]);
 
   const sections = useMemo(
     () => evaluation?.template.sections ?? [],
@@ -363,6 +374,17 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
   );
 
   const handleNext = useCallback(async () => {
+    if (readOnly) {
+      if (dimensionIndex >= sections.length - 1) {
+        void navigate({
+          to: def.routes.summary,
+          params: { evaluationId },
+        });
+      } else {
+        setDimensionIndex((prev) => prev + 1);
+      }
+      return;
+    }
     if (missingApplicableKpi(dimensionIndex)) {
       toast({
         title: t("app.common.error"),
@@ -391,13 +413,14 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
     evaluationId,
     draftKey,
     missingApplicableKpi,
+    readOnly,
     t,
   ]);
 
   const handlePrevious = useCallback(async () => {
-    await saveDimension(dimensionIndex);
+    if (!readOnly) await saveDimension(dimensionIndex);
     setDimensionIndex((prev) => Math.max(prev - 1, 0));
-  }, [saveDimension, dimensionIndex]);
+  }, [saveDimension, dimensionIndex, readOnly]);
 
   if (loading) {
     return (
@@ -493,6 +516,7 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
                 void handleImproveObservation(indicatorId)
               }
               improvingIndicatorId={improvingIndicatorId}
+              readOnly={readOnly}
               labels={{
                 dimension: t(`${def.i18n}.section`),
                 indicatorsCompleted: t(`${def.i18n}.indicatorsCompleted`),
@@ -502,13 +526,22 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
 
           <div className="flex items-center justify-between mt-6">
             <span className="text-xs text-muted-foreground">
-              {pendingSyncCount > 0
-                ? `${t(`${def.i18n}.pendingSync`)} (${pendingSyncCount})`
-                : hasUnsavedChanges
-                  ? t(`${def.i18n}.unsavedChanges`)
-                  : lastSaved
-                    ? `${t(`${def.i18n}.autoSaved`)} ${lastSaved.toLocaleTimeString()}`
-                    : null}
+              {readOnly
+                ? t("app.assessment.history.readOnlyNotice", {
+                    date: evaluation.completedAt
+                      ? new Date(evaluation.completedAt).toLocaleDateString(
+                          "es-EC",
+                          { day: "2-digit", month: "long", year: "numeric" }
+                        )
+                      : "—",
+                  })
+                : pendingSyncCount > 0
+                  ? `${t(`${def.i18n}.pendingSync`)} (${pendingSyncCount})`
+                  : hasUnsavedChanges
+                    ? t(`${def.i18n}.unsavedChanges`)
+                    : lastSaved
+                      ? `${t(`${def.i18n}.autoSaved`)} ${lastSaved.toLocaleTimeString()}`
+                      : null}
             </span>
             <div className="flex gap-2">
               {dimensionIndex > 0 && (
@@ -521,13 +554,15 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
                   {t(`${def.i18n}.previousSection`)}
                 </Button>
               )}
-              <Button
-                variant="outline"
-                onClick={handleSaveClick}
-                disabled={saving}
-              >
-                {t(`${def.i18n}.save`)}
-              </Button>
+              {!readOnly && (
+                <Button
+                  variant="outline"
+                  onClick={handleSaveClick}
+                  disabled={saving}
+                >
+                  {t(`${def.i18n}.save`)}
+                </Button>
+              )}
               <Button onClick={() => void handleNext()} disabled={saving}>
                 {dimensionIndex === sections.length - 1
                   ? t(`${def.i18n}.viewSummary`)

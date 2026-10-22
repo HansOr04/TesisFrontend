@@ -540,6 +540,13 @@ export function IndicatorToolSummaryPage({ def }: { def: IndicatorToolUi }) {
         sectionLabel={t(`${def.i18n}.section`)}
         onRetake={() => void handleRetake()}
         retaking={retaking}
+        currentEvaluationId={evaluationId}
+        onOpenEvaluation={(id) =>
+          void navigate({
+            to: def.routes.evaluation,
+            params: { evaluationId: id },
+          })
+        }
       />
 
       <ImpactPriorityPanel
