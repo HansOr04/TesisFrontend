@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/modules/auth/application/auth-context";
-import { useTranslation } from "@/shared/i18n/i18n";
+import { useTranslation, type Translate } from "@/shared/i18n/i18n";
 import { toast } from "@/shared/ui/use-toast";
 import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
@@ -39,6 +39,8 @@ import {
   Flame,
   User,
   Calendar,
+  Clock,
+  Link2,
 } from "lucide-react";
 import {
   createRiskMeasure,
@@ -61,6 +63,16 @@ import {
 } from "@/modules/assessment-core/presentation/components/measure-progress-dialog";
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
 import { cn } from "@/shared/lib/utils";
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/** Días enteros de `now` a `value` (negativo si ya pasó), como el Gantt. */
+function daysUntil(value: string, now: number): number {
+  const diff = new Date(value).getTime() - now;
+  return diff >= 0
+    ? Math.ceil(diff / MS_PER_DAY)
+    : -Math.ceil(-diff / MS_PER_DAY);
+}
 
 interface SuggestionDraft {
   riskId: string;
@@ -248,6 +260,9 @@ export function RiskMitigationPage() {
     }
     return map;
   }, [evaluation]);
+
+  // Una sola referencia de "hoy" para todas las tarjetas del tablero.
+  const [now] = useState(() => Date.now());
 
   const measuresByStatus = useMemo(() => {
     return {
@@ -649,6 +664,11 @@ export function RiskMitigationPage() {
                               {new Date(measure.endDate).toLocaleDateString()}
                             </span>
                           </div>
+                          <MeasureCardStatus
+                            measure={measure}
+                            now={now}
+                            t={t}
+                          />
                           <div className="h-2 rounded-full bg-muted overflow-hidden mt-3 border border-black/5">
                             <div
                               className={cn("h-full rounded-full", col.bar)}
@@ -1036,6 +1056,93 @@ export function RiskMitigationPage() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Lo que cada columna necesita contar de una medida: si una pendiente ya
+// debió empezar, cuánto le queda o cuánto se atrasó la que está en curso, y
+// en la concluida, qué se implementó y si dejó medio de verificación.
+function MeasureCardStatus({
+  measure,
+  now,
+  t,
+}: {
+  measure: AssessmentMitigationMeasureData;
+  now: number;
+  t: Translate;
+}) {
+  const toEnd = daysUntil(measure.endDate, now);
+  const schedule =
+    toEnd < 0 ? (
+      <span className="flex items-center gap-1 text-[11px] font-semibold text-danger">
+        <Clock className="h-3 w-3 shrink-0" />
+        {-toEnd}d {t("app.assessment.organizational.ganttOverdueSuffix")}
+      </span>
+    ) : (
+      <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+        <Clock className="h-3 w-3 shrink-0" />
+        {toEnd}d {t("app.assessment.organizational.ganttDaysLeftSuffix")}
+      </span>
+    );
+
+  if (measure.status === "PENDING") {
+    const toStart = daysUntil(measure.startWeek, now);
+    return (
+      <div className="mt-2 space-y-1">
+        {toStart > 0 ? (
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
+            {t("app.assessment.measure.cardStartsIn", { days: toStart })}
+          </span>
+        ) : (
+          <>
+            <span className="block text-[11px] font-semibold text-warning">
+              {t("app.assessment.measure.cardNotStarted")}
+            </span>
+            {schedule}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (measure.status === "IN_PROGRESS") {
+    return (
+      <div className="mt-2 space-y-1">
+        {schedule}
+        {measure.appliedImprovements && (
+          <p className="text-xs leading-snug text-foreground/80 line-clamp-2">
+            <span className="font-semibold">
+              {t("app.assessment.measure.cardProgressNote")}:{" "}
+            </span>
+            {measure.appliedImprovements}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-1.5 rounded-lg bg-success/5 p-2">
+      {measure.appliedImprovements ? (
+        <p className="text-xs leading-snug text-foreground/85 line-clamp-3">
+          <span className="font-semibold text-success">
+            {t("app.assessment.measure.cardImplemented")}:{" "}
+          </span>
+          {measure.appliedImprovements}
+        </p>
+      ) : (
+        <p className="text-[11px] font-semibold text-warning">
+          {t("app.assessment.measure.cardNoImplementedDetail")}
+        </p>
+      )}
+      {measure.verificationLink && (
+        <span className="flex items-center gap-1 text-[11px] font-semibold text-brand-deep">
+          <Link2 className="h-3 w-3 shrink-0" />
+          {t("app.assessment.measure.cardEvidence")}
+        </span>
+      )}
     </div>
   );
 }
