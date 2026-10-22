@@ -146,6 +146,12 @@ export function MeasureProgressDialog({
   const status = useMemo(() => deriveStatus(progress), [progress]);
   const style = STATUS_STYLE[status];
   const changed = solution ? progress !== solution.progressPct : false;
+  // Concluir una medida es afirmar que el riesgo o la brecha se atendió: se
+  // exige dejar escrito qué se implementó, que es lo que muestran el tablero
+  // y el reporte de una medida concluida.
+  const missingImplemented =
+    status === "DONE" && appliedImprovements.trim().length === 0;
+  const evidenceUrl = /^https?:\/\//i.test(link.trim()) ? link.trim() : null;
 
   const handleSave = () =>
     onSave({
@@ -406,17 +412,37 @@ export function MeasureProgressDialog({
                 <div>
                   <Label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
                     <Sparkles className="h-3.5 w-3.5" />{" "}
-                    {t("app.assessment.measure.appliedImprovements")}
+                    {status === "DONE"
+                      ? t("app.assessment.measure.appliedImprovementsDone")
+                      : t("app.assessment.measure.appliedImprovements")}
                   </Label>
                   <Textarea
                     rows={4}
                     value={appliedImprovements}
                     onChange={(e) => setAppliedImprovements(e.target.value)}
-                    placeholder={t(
-                      "app.assessment.measure.appliedImprovementsPlaceholder"
+                    placeholder={
+                      status === "DONE"
+                        ? t(
+                            "app.assessment.measure.appliedImprovementsDonePlaceholder"
+                          )
+                        : t(
+                            "app.assessment.measure.appliedImprovementsPlaceholder"
+                          )
+                    }
+                    className={cn(
+                      "mt-1.5 text-sm",
+                      missingImplemented && "border-warning/60"
                     )}
-                    className="mt-1.5 text-sm"
                   />
+                  {missingImplemented && (
+                    <p
+                      className="mt-1 flex items-center gap-1 text-xs"
+                      style={{ color: "var(--color-warning)" }}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      {t("app.assessment.measure.appliedImprovementsRequired")}
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -475,6 +501,17 @@ export function MeasureProgressDialog({
                         )}
                         className="mt-1.5"
                       />
+                      {evidenceUrl && (
+                        <a
+                          href={evidenceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-deep hover:underline"
+                        >
+                          <Link2 className="h-3 w-3" />
+                          {t("app.assessment.measure.openEvidence")}
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}
@@ -485,7 +522,10 @@ export function MeasureProgressDialog({
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 {t("app.common.cancel")}
               </Button>
-              <Button onClick={() => void handleSave()} disabled={saving}>
+              <Button
+                onClick={() => void handleSave()}
+                disabled={saving || missingImplemented}
+              >
                 <CheckCircle2 className="h-4 w-4" />
                 {saving
                   ? t("app.assessment.measure.saving")
