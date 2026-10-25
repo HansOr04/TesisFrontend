@@ -27,6 +27,7 @@ import { Route as LoggedinAssessmentsOrganizationalAdminRouteImport } from "./ro
 import { Route as LoggedinAssessmentsCapacityAdminRouteImport } from "./routes/_loggedin/assessments/capacity/admin"
 import { Route as LoggedinAssessmentsAssociationsProfileIdRouteImport } from "./routes/_loggedin/assessments/associations/$profileId"
 import { Route as LoggedinAssessmentsProfileIdEditRouteImport } from "./routes/_loggedin/assessments/$profileId/edit"
+import { Route as LoggedinAssessmentsProfileIdActionPlanRouteImport } from "./routes/_loggedin/assessments/$profileId/action-plan"
 import { Route as LoggedinAssessmentsRiskEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/risk/$evaluationId/index"
 import { Route as LoggedinAssessmentsOrganizationalEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/organizational/$evaluationId/index"
 import { Route as LoggedinAssessmentsCapacityEvaluationIdIndexRouteImport } from "./routes/_loggedin/assessments/capacity/$evaluationId/index"
@@ -145,6 +146,12 @@ const LoggedinAssessmentsProfileIdEditRoute =
     path: "/assessments/$profileId/edit",
     getParentRoute: () => LoggedinRoute,
   } as any)
+const LoggedinAssessmentsProfileIdActionPlanRoute =
+  LoggedinAssessmentsProfileIdActionPlanRouteImport.update({
+    id: "/assessments/$profileId/action-plan",
+    path: "/assessments/$profileId/action-plan",
+    getParentRoute: () => LoggedinRoute,
+  } as any)
 const LoggedinAssessmentsRiskEvaluationIdIndexRoute =
   LoggedinAssessmentsRiskEvaluationIdIndexRouteImport.update({
     id: "/assessments/risk/$evaluationId/",
@@ -246,6 +253,7 @@ export interface FileRoutesByFullPath {
   "/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/$profileId/action-plan": typeof LoggedinAssessmentsProfileIdActionPlanRoute
   "/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
@@ -279,6 +287,7 @@ export interface FileRoutesByTo {
   "/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/assessments": typeof LoggedinAssessmentsIndexRoute
+  "/assessments/$profileId/action-plan": typeof LoggedinAssessmentsProfileIdActionPlanRoute
   "/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
@@ -314,6 +323,7 @@ export interface FileRoutesById {
   "/_loggedin/assessments/organisations": typeof LoggedinAssessmentsOrganisationsRoute
   "/_loggedin/assessments/users": typeof LoggedinAssessmentsUsersRoute
   "/_loggedin/assessments/": typeof LoggedinAssessmentsIndexRoute
+  "/_loggedin/assessments/$profileId/action-plan": typeof LoggedinAssessmentsProfileIdActionPlanRoute
   "/_loggedin/assessments/$profileId/edit": typeof LoggedinAssessmentsProfileIdEditRoute
   "/_loggedin/assessments/associations/$profileId": typeof LoggedinAssessmentsAssociationsProfileIdRoute
   "/_loggedin/assessments/capacity/admin": typeof LoggedinAssessmentsCapacityAdminRoute
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | "/assessments/organisations"
     | "/assessments/users"
     | "/assessments/"
+    | "/assessments/$profileId/action-plan"
     | "/assessments/$profileId/edit"
     | "/assessments/associations/$profileId"
     | "/assessments/capacity/admin"
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | "/assessments/organisations"
     | "/assessments/users"
     | "/assessments"
+    | "/assessments/$profileId/action-plan"
     | "/assessments/$profileId/edit"
     | "/assessments/associations/$profileId"
     | "/assessments/capacity/admin"
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | "/_loggedin/assessments/organisations"
     | "/_loggedin/assessments/users"
     | "/_loggedin/assessments/"
+    | "/_loggedin/assessments/$profileId/action-plan"
     | "/_loggedin/assessments/$profileId/edit"
     | "/_loggedin/assessments/associations/$profileId"
     | "/_loggedin/assessments/capacity/admin"
@@ -574,6 +587,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoggedinAssessmentsProfileIdEditRouteImport
       parentRoute: typeof LoggedinRoute
     }
+    "/_loggedin/assessments/$profileId/action-plan": {
+      id: "/_loggedin/assessments/$profileId/action-plan"
+      path: "/assessments/$profileId/action-plan"
+      fullPath: "/assessments/$profileId/action-plan"
+      preLoaderRoute: typeof LoggedinAssessmentsProfileIdActionPlanRouteImport
+      parentRoute: typeof LoggedinRoute
+    }
     "/_loggedin/assessments/risk/$evaluationId/": {
       id: "/_loggedin/assessments/risk/$evaluationId/"
       path: "/assessments/risk/$evaluationId"
@@ -683,6 +703,7 @@ interface LoggedinRouteChildren {
   LoggedinAssessmentsOrganisationsRoute: typeof LoggedinAssessmentsOrganisationsRoute
   LoggedinAssessmentsUsersRoute: typeof LoggedinAssessmentsUsersRoute
   LoggedinAssessmentsIndexRoute: typeof LoggedinAssessmentsIndexRoute
+  LoggedinAssessmentsProfileIdActionPlanRoute: typeof LoggedinAssessmentsProfileIdActionPlanRoute
   LoggedinAssessmentsProfileIdEditRoute: typeof LoggedinAssessmentsProfileIdEditRoute
   LoggedinAssessmentsAssociationsProfileIdRoute: typeof LoggedinAssessmentsAssociationsProfileIdRoute
   LoggedinAssessmentsCapacityAdminRoute: typeof LoggedinAssessmentsCapacityAdminRoute
@@ -715,6 +736,8 @@ const LoggedinRouteChildren: LoggedinRouteChildren = {
   LoggedinAssessmentsOrganisationsRoute: LoggedinAssessmentsOrganisationsRoute,
   LoggedinAssessmentsUsersRoute: LoggedinAssessmentsUsersRoute,
   LoggedinAssessmentsIndexRoute: LoggedinAssessmentsIndexRoute,
+  LoggedinAssessmentsProfileIdActionPlanRoute:
+    LoggedinAssessmentsProfileIdActionPlanRoute,
   LoggedinAssessmentsProfileIdEditRoute: LoggedinAssessmentsProfileIdEditRoute,
   LoggedinAssessmentsAssociationsProfileIdRoute:
     LoggedinAssessmentsAssociationsProfileIdRoute,

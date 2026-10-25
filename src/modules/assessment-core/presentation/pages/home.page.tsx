@@ -15,6 +15,7 @@ import {
   Lock,
   Pencil,
   SlidersHorizontal,
+  ListChecks,
   ChevronRight,
   Users,
 } from "lucide-react";
@@ -213,6 +214,20 @@ export function AssessmentProfilesPage() {
                             {t("app.assessment.profiles.applicabilityAction")}
                           </Button>
                           <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.assessment.profilePlan.actionTitle")}
+                            onClick={() =>
+                              void navigate({
+                                to: "/assessments/$profileId/action-plan",
+                                params: { profileId: p.id },
+                              })
+                            }
+                          >
+                            <ListChecks className="h-4 w-4" />
+                            {t("app.assessment.profilePlan.action")}
+                          </Button>
+                          <Button
                             size="sm"
                             className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
                             onClick={() =>
@@ -322,6 +337,22 @@ export function AssessmentProfilesPage() {
                                 {t(
                                   "app.assessment.profiles.applicabilityAction"
                                 )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title={t(
+                                  "app.assessment.profilePlan.actionTitle"
+                                )}
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/$profileId/action-plan",
+                                    params: { profileId: child.id },
+                                  })
+                                }
+                              >
+                                <ListChecks className="h-4 w-4" />
+                                {t("app.assessment.profilePlan.action")}
                               </Button>
                               <Button
                                 size="sm"
