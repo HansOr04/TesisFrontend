@@ -309,12 +309,19 @@ function AppShellInner() {
             </button>
             <span className="hidden sm:inline">Evalúa</span>
             <span className="hidden sm:inline text-border">/</span>
-            <span className="font-semibold text-foreground">
+            {/* En teléfono no caben las dos cosas: si hay una organización
+                abierta, su nombre tiene prioridad sobre el de la sección. */}
+            <span
+              className={cn(
+                "font-semibold text-foreground",
+                pageHeaderName && "hidden sm:inline"
+              )}
+            >
               {current.label}
             </span>
             {pageHeaderName && (
               <>
-                <span className="text-border">·</span>
+                <span className="hidden text-border sm:inline">·</span>
                 <span
                   className="truncate text-base font-extrabold"
                   style={

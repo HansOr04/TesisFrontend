@@ -144,7 +144,7 @@ export function ImpactPriorityPanel({
         ) : (
           <>
             {podium.length > 0 && (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {podium.map((item, idx) => {
                   const style = PODIUM_STYLE[idx];
                   return (

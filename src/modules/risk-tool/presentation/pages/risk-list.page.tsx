@@ -137,7 +137,7 @@ export function RiskPanelGeneralPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card>
           <CardContent className="flex items-center justify-between py-4">
             <div>
