@@ -99,95 +99,99 @@ export function GanttChart({
   const todayPct = Math.min(Math.max(pctFor(new Date(now)), 0), 100);
 
   return (
-    <div className="space-y-3" data-testid="gantt-chart">
-      <div className="relative">
-        <div
-          className="grid text-[11px] text-muted-foreground border-b pb-1"
-          style={{
-            gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {weeks.map((w) => (
-            <div key={w.toISOString()} className="text-center truncate">
-              {formatWeekLabel(w)}
-            </div>
-          ))}
-        </div>
-        <div
-          className="absolute top-0 bottom-0 flex flex-col items-center pointer-events-none"
-          style={{ left: `${todayPct}%` }}
-        >
-          <span className="text-[10px] font-semibold text-foreground/70 -translate-x-1/2 whitespace-nowrap">
-            {todayLabel}
-          </span>
-        </div>
-      </div>
-      <div className="space-y-2">
-        {measures.map((m) => {
-          const left = pctFor(new Date(m.start));
-          const width = Math.max(
-            pctFor(new Date(m.end)) - left,
-            2 // ancho mínimo visible
-          );
-          const color = scheduleColor(m, now);
-          const endMs = new Date(m.end).getTime();
-          const overdueDays =
-            m.status !== "DONE" && now > endMs
-              ? Math.ceil((now - endMs) / MS_PER_DAY)
-              : 0;
-          const daysLeft =
-            m.status !== "DONE" && now <= endMs
-              ? Math.ceil((endMs - now) / MS_PER_DAY)
-              : 0;
-          return (
-            <div key={m.measureId} className="flex items-center gap-3">
-              <div
-                className="w-40 shrink-0 text-xs truncate"
-                title={m.description}
-              >
-                {m.description}
+    // En pantallas angostas el cronograma se desplaza dentro de su caja en
+    // vez de ensanchar toda la página (HU-58).
+    <div className="overflow-x-auto" data-testid="gantt-chart">
+      <div className="min-w-[640px] space-y-3">
+        <div className="relative">
+          <div
+            className="grid text-[11px] text-muted-foreground border-b pb-1"
+            style={{
+              gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {weeks.map((w) => (
+              <div key={w.toISOString()} className="text-center truncate">
+                {formatWeekLabel(w)}
               </div>
-              <div className="flex-1 space-y-0.5">
-                <div className="relative h-6 bg-muted rounded overflow-hidden">
-                  <div
-                    className="absolute top-0 bottom-0 w-px bg-foreground/40"
-                    style={{ left: `${todayPct}%` }}
-                  />
-                  <div
-                    className="absolute top-0 h-full rounded flex items-center justify-center text-[10px] font-semibold text-white"
-                    style={{
-                      left: `${left}%`,
-                      width: `${width}%`,
-                      backgroundColor: color,
-                    }}
-                    title={`${m.responsible} · ${m.progressPct}% · ${
-                      statusLabel ? statusLabel(m.status) : m.status
-                    }`}
-                  >
-                    {m.progressPct}%
+            ))}
+          </div>
+          <div
+            className="absolute top-0 bottom-0 flex flex-col items-center pointer-events-none"
+            style={{ left: `${todayPct}%` }}
+          >
+            <span className="text-[10px] font-semibold text-foreground/70 -translate-x-1/2 whitespace-nowrap">
+              {todayLabel}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          {measures.map((m) => {
+            const left = pctFor(new Date(m.start));
+            const width = Math.max(
+              pctFor(new Date(m.end)) - left,
+              2 // ancho mínimo visible
+            );
+            const color = scheduleColor(m, now);
+            const endMs = new Date(m.end).getTime();
+            const overdueDays =
+              m.status !== "DONE" && now > endMs
+                ? Math.ceil((now - endMs) / MS_PER_DAY)
+                : 0;
+            const daysLeft =
+              m.status !== "DONE" && now <= endMs
+                ? Math.ceil((endMs - now) / MS_PER_DAY)
+                : 0;
+            return (
+              <div key={m.measureId} className="flex items-center gap-3">
+                <div
+                  className="w-40 shrink-0 text-xs truncate"
+                  title={m.description}
+                >
+                  {m.description}
+                </div>
+                <div className="flex-1 space-y-0.5">
+                  <div className="relative h-6 bg-muted rounded overflow-hidden">
+                    <div
+                      className="absolute top-0 bottom-0 w-px bg-foreground/40"
+                      style={{ left: `${todayPct}%` }}
+                    />
+                    <div
+                      className="absolute top-0 h-full rounded flex items-center justify-center text-[10px] font-semibold text-white"
+                      style={{
+                        left: `${left}%`,
+                        width: `${width}%`,
+                        backgroundColor: color,
+                      }}
+                      title={`${m.responsible} · ${m.progressPct}% · ${
+                        statusLabel ? statusLabel(m.status) : m.status
+                      }`}
+                    >
+                      {m.progressPct}%
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>
+                      {formatShortDate(m.start)} — {formatShortDate(m.end)}
+                    </span>
+                    {overdueDays > 0 ? (
+                      <span className="font-semibold" style={{ color: RED }}>
+                        {overdueDays}d {overdueSuffix}
+                      </span>
+                    ) : daysLeft > 0 ? (
+                      <span>
+                        {daysLeft}d {daysLeftSuffix}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span>
-                    {formatShortDate(m.start)} — {formatShortDate(m.end)}
-                  </span>
-                  {overdueDays > 0 ? (
-                    <span className="font-semibold" style={{ color: RED }}>
-                      {overdueDays}d {overdueSuffix}
-                    </span>
-                  ) : daysLeft > 0 ? (
-                    <span>
-                      {daysLeft}d {daysLeftSuffix}
-                    </span>
-                  ) : null}
+                <div className="w-24 shrink-0 text-[11px] text-muted-foreground truncate">
+                  {m.responsible}
                 </div>
               </div>
-              <div className="w-24 shrink-0 text-[11px] text-muted-foreground truncate">
-                {m.responsible}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
