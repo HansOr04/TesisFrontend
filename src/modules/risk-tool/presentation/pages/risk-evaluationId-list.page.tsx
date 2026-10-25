@@ -30,6 +30,8 @@ import {
 } from "@/modules/realtime/infrastructure/offline-queue";
 import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 
+const AUTOSAVE_DELAY_MS = 3000;
+
 function areDraftsEqual(
   a: Record<string, DraftResponseRisk>,
   b: Record<string, DraftResponseRisk>
@@ -392,6 +394,52 @@ export function RiskEvaluationDetailPage() {
     void savePrinciple(principleIndex);
   }, [savePrinciple, principleIndex]);
 
+  // Guardado automático (pedido en el piloto): a los pocos segundos sin
+  // cambios se guarda la sección en curso. Solo si lo calificado ya tiene lo
+  // obligatorio; si falta, se espera sin mostrar error (el error aparece al
+  // pulsar Guardar o Siguiente). Si el servidor lo rechaza, no se reintenta
+  // hasta el siguiente cambio, para no repetir el aviso en bucle.
+  const [autoSaveFailedFor, setAutoSaveFailedFor] = useState<Record<
+    string,
+    DraftResponseRisk
+  > | null>(null);
+  useEffect(() => {
+    if (readOnly || saving || autoSaveFailedFor === draft) return;
+    const section = sections[principleIndex];
+    if (!section) return;
+    const entries = section.indicators
+      .map((ind) => ({ entry: draft[ind.id], saved: savedDraft[ind.id] }))
+      .filter((x) => x.entry?.score != null);
+    const changed = entries.some(
+      ({ entry, saved }) =>
+        entry.score !== saved?.score ||
+        entry.observation !== saved?.observation ||
+        entry.manualCritical !== saved?.manualCritical ||
+          entry.riskDescription !== saved?.riskDescription ||
+          entry.riskType !== saved?.riskType
+    );
+    const incomplete = entries.some(
+      ({ entry }) => !entry.observation.trim() || !entry.riskDescription.trim()
+    );
+    if (!changed || incomplete) return;
+    const pendingDraft = draft;
+    const timer = window.setTimeout(() => {
+      void savePrinciple(principleIndex).then((ok) => {
+        if (!ok) setAutoSaveFailedFor(pendingDraft);
+      });
+    }, AUTOSAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [
+    readOnly,
+    saving,
+    autoSaveFailedFor,
+    draft,
+    savedDraft,
+    sections,
+    principleIndex,
+    savePrinciple,
+  ]);
+
   // No se puede avanzar de principio (ni ver el resumen) si falta calificar
   // algún KPI aplicable — los marcados applicable=false por la aplicabilidad
   // del perfil se excluyen y no bloquean el avance. "Guardar" sigue
@@ -476,13 +524,20 @@ export function RiskEvaluationDetailPage() {
   const currentSectionIndicators =
     currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
+  // Promedio ponderado por el peso de cada KPI, el mismo que calcula el
+  // servidor para el resumen y el historial (con un promedio simple, la misma
+  // dimensión se veía 7.8 aquí y 7.9 en el resumen).
   const currentSectionAverage = currentSection
     ? (() => {
-        const scores = currentSectionIndicators
-          .map((ind) => draft[ind.id]?.score)
-          .filter((s): s is number => s !== null && s !== undefined);
-        return scores.length > 0
-          ? scores.reduce((a, b) => a + b, 0) / scores.length
+        const scored = currentSectionIndicators
+          .map((ind) => ({ weight: ind.weight, score: draft[ind.id]?.score }))
+          .filter((x): x is { weight: number; score: number } =>
+            x.score != null
+          );
+        const totalWeight = scored.reduce((sum, x) => sum + x.weight, 0);
+        return totalWeight > 0
+          ? scored.reduce((sum, x) => sum + x.weight * x.score, 0) /
+              totalWeight
           : 0;
       })()
     : 0;

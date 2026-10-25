@@ -506,7 +506,9 @@ export function AssessmentProfileWizardPage({
     setStep(1);
   };
 
-  const handleSave = async () => {
+  // En edición, `stay` guarda sin salir del formulario: se pidió en el piloto
+  // para ir guardando los datos de la organización mientras se completan.
+  const handleSave = async ({ stay = false }: { stay?: boolean } = {}) => {
     if (!org || !token) return;
     setSaving(true);
     try {
@@ -560,7 +562,7 @@ export function AssessmentProfileWizardPage({
           description: t("app.assessment.wizard.updated"),
           variant: "success",
         });
-        void navigate({ to: "/assessments" });
+        if (!stay) void navigate({ to: "/assessments" });
         return;
       }
 
@@ -990,16 +992,27 @@ export function AssessmentProfileWizardPage({
             ? t("app.common.cancel")
             : t("app.assessment.wizard.back")}
         </Button>
-        <Button onClick={handleNext} disabled={nextDisabled}>
-          {step < TOTAL_STEPS ? (
-            <>
-              {t("app.assessment.wizard.next")}
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </>
-          ) : (
-            saveLabel
+        <div className="flex gap-2">
+          {isEdit && step < TOTAL_STEPS && (
+            <Button
+              variant="outline"
+              onClick={() => void handleSave({ stay: true })}
+              disabled={saving || !(step1Valid && step2Valid && step3Valid)}
+            >
+              {t("app.assessment.wizard.saveAndContinue")}
+            </Button>
           )}
-        </Button>
+          <Button onClick={handleNext} disabled={nextDisabled}>
+            {step < TOTAL_STEPS ? (
+              <>
+                {t("app.assessment.wizard.next")}
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </>
+            ) : (
+              saveLabel
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

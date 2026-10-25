@@ -14,6 +14,7 @@ export enum routeKeys {
   assessmentUsers = "/_loggedin/assessments/users",
   assessmentOrganisations = "/_loggedin/assessments/organisations",
   assessmentProfileEdit = "/_loggedin/assessments/$profileId/edit",
+  assessmentProfileActionPlan = "/_loggedin/assessments/$profileId/action-plan",
 
   // Herramienta Organizativa
   organizationalTool = "/_loggedin/assessments/organizational/",

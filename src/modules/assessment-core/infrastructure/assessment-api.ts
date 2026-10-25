@@ -299,6 +299,41 @@ export async function fetchAssessmentProfile(
   );
 }
 
+/** Una medida del plan consolidado de una organización (las tres herramientas). */
+export interface ProfileActionPlanMeasure {
+  id: string;
+  tool: "ORGANIZATIONAL" | "CAPACITY" | "RISK";
+  evaluationId: string;
+  evaluationStartedAt: string;
+  indicatorCode: string;
+  indicatorName: string;
+  title: string;
+  responsible: string;
+  startDate: string;
+  endDate: string;
+  status: AssessmentMeasureStatus;
+  progressPct: number;
+  appliedImprovements: string | null;
+  verificationLink: string | null;
+}
+
+export interface ProfileActionPlan {
+  profile: { id: string; name: string };
+  measures: ProfileActionPlanMeasure[];
+}
+
+export async function fetchProfileActionPlan(
+  org: string,
+  profileId: string,
+  token?: string
+): Promise<ProfileActionPlan> {
+  return genericGet<ProfileActionPlan>(
+    org,
+    `/assessments/profiles/${profileId}/action-plan`,
+    token
+  );
+}
+
 export async function updateAssessmentProfile(
   org: string,
   id: string,
