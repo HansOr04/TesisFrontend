@@ -126,7 +126,7 @@ export function ExecutiveSummary({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card>
           <CardContent className="flex items-center justify-between py-4">
             <div>
@@ -260,7 +260,7 @@ export function ExecutiveSummary({
             {label.summaryByDimension}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/60">
               <tr>

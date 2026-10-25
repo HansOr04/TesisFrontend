@@ -15,6 +15,7 @@ import {
   Lock,
   Pencil,
   SlidersHorizontal,
+  ListChecks,
   ChevronRight,
   Users,
 } from "lucide-react";
@@ -68,7 +69,7 @@ export function AssessmentProfilesPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <PageTitle rawTitle={t("app.assessment.profiles.title")} />
           <p className="text-sm text-muted-foreground mt-1">
@@ -213,6 +214,20 @@ export function AssessmentProfilesPage() {
                             {t("app.assessment.profiles.applicabilityAction")}
                           </Button>
                           <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.assessment.profilePlan.actionTitle")}
+                            onClick={() =>
+                              void navigate({
+                                to: "/assessments/$profileId/action-plan",
+                                params: { profileId: p.id },
+                              })
+                            }
+                          >
+                            <ListChecks className="h-4 w-4" />
+                            {t("app.assessment.profilePlan.action")}
+                          </Button>
+                          <Button
                             size="sm"
                             className="bg-tool-organizational/10 text-tool-organizational shadow-none hover:bg-tool-organizational hover:text-white"
                             onClick={() =>
@@ -322,6 +337,22 @@ export function AssessmentProfilesPage() {
                                 {t(
                                   "app.assessment.profiles.applicabilityAction"
                                 )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title={t(
+                                  "app.assessment.profilePlan.actionTitle"
+                                )}
+                                onClick={() =>
+                                  void navigate({
+                                    to: "/assessments/$profileId/action-plan",
+                                    params: { profileId: child.id },
+                                  })
+                                }
+                              >
+                                <ListChecks className="h-4 w-4" />
+                                {t("app.assessment.profilePlan.action")}
                               </Button>
                               <Button
                                 size="sm"
