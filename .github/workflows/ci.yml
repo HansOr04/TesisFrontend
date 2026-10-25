@@ -1,0 +1,47 @@
+# Integración continua de la aplicación web (HU-61): cada pull request y cada
+# push a develop o main pasa por estilo, tipos, pruebas y compilación. La
+# protección de ramas exige que termine en verde antes de integrar (HU-62).
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Estilo, tipos, pruebas y compilación
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Estilo (ESLint)
+        run: npm run lint
+
+      - name: Tipos (TypeScript)
+        run: npm run typecheck
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      # Compila con la misma orden que Vercel (tsc -b + vite build).
+      - name: Compilación
+        run: npm run build
