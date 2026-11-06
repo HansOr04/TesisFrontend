@@ -25,6 +25,7 @@ import {
 } from "@/modules/realtime/infrastructure/offline-queue";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
 import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
+import { weightedSectionAverage } from "@/modules/assessment-core/domain/section-average";
 
 const AUTOSAVE_DELAY_MS = 3000;
 
@@ -490,22 +491,11 @@ export function IndicatorToolEvaluationPage({ def }: { def: IndicatorToolUi }) {
     currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
   // Promedio ponderado por el peso de cada KPI, el mismo que calcula el
-  // servidor para el resumen y el historial (con un promedio simple, la misma
-  // dimensión se veía 7.8 aquí y 7.9 en el resumen).
-  const currentSectionAverage = currentSection
-    ? (() => {
-        const scored = currentSectionIndicators
-          .map((ind) => ({ weight: ind.weight, score: draft[ind.id]?.score }))
-          .filter((x): x is { weight: number; score: number } =>
-            x.score != null
-          );
-        const totalWeight = scored.reduce((sum, x) => sum + x.weight, 0);
-        return totalWeight > 0
-          ? scored.reduce((sum, x) => sum + x.weight * x.score, 0) /
-              totalWeight
-          : 0;
-      })()
-    : 0;
+  // servidor para el resumen y el historial.
+  const currentSectionAverage = weightedSectionAverage(
+    currentSectionIndicators,
+    draft
+  );
 
   return (
     <div className="container mx-auto py-6 space-y-4">
