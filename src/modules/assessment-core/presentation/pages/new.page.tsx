@@ -64,39 +64,42 @@ interface WizardDraftSnapshot {
   step: number;
 }
 
-// Cantidad exacta de dígitos del número nacional (sin el prefijo del país),
-// igual para todos los países de la lista: ni más ni menos.
-const PHONE_DIGITS = 9;
+// Dígitos del número nacional cuando todavía no se eligió el país.
+const DEFAULT_PHONE_DIGITS = 9;
 
 // Código ISO 3166-1 alpha-2 (mismo formato que usa el resto del sistema, p.ej.
-// AssessmentRiskCountryParam) + prefijo telefónico.
+// AssessmentRiskCountryParam) + prefijo telefónico + dígitos exactos del
+// número nacional (celular, sin el 0 de marcación nacional). Con 9 fijos para
+// todos no se podía registrar un celular de Colombia (10). El servidor valida
+// con la misma tabla (assessment-core/domain/contact-phone).
 interface LatamCountry {
   code: string;
   name: string;
   dialCode: string;
+  phoneDigits: number;
 }
 
 const LATAM_COUNTRIES: LatamCountry[] = [
-  { code: "AR", name: "Argentina", dialCode: "54" },
-  { code: "BO", name: "Bolivia", dialCode: "591" },
-  { code: "BR", name: "Brasil", dialCode: "55" },
-  { code: "CL", name: "Chile", dialCode: "56" },
-  { code: "CO", name: "Colombia", dialCode: "57" },
-  { code: "CR", name: "Costa Rica", dialCode: "506" },
-  { code: "CU", name: "Cuba", dialCode: "53" },
-  { code: "EC", name: "Ecuador", dialCode: "593" },
-  { code: "SV", name: "El Salvador", dialCode: "503" },
-  { code: "GT", name: "Guatemala", dialCode: "502" },
-  { code: "HT", name: "Haití", dialCode: "509" },
-  { code: "HN", name: "Honduras", dialCode: "504" },
-  { code: "MX", name: "México", dialCode: "52" },
-  { code: "NI", name: "Nicaragua", dialCode: "505" },
-  { code: "PA", name: "Panamá", dialCode: "507" },
-  { code: "PY", name: "Paraguay", dialCode: "595" },
-  { code: "PE", name: "Perú", dialCode: "51" },
-  { code: "DO", name: "República Dominicana", dialCode: "1" },
-  { code: "UY", name: "Uruguay", dialCode: "598" },
-  { code: "VE", name: "Venezuela", dialCode: "58" },
+  { code: "AR", name: "Argentina", dialCode: "54", phoneDigits: 10 },
+  { code: "BO", name: "Bolivia", dialCode: "591", phoneDigits: 8 },
+  { code: "BR", name: "Brasil", dialCode: "55", phoneDigits: 11 },
+  { code: "CL", name: "Chile", dialCode: "56", phoneDigits: 9 },
+  { code: "CO", name: "Colombia", dialCode: "57", phoneDigits: 10 },
+  { code: "CR", name: "Costa Rica", dialCode: "506", phoneDigits: 8 },
+  { code: "CU", name: "Cuba", dialCode: "53", phoneDigits: 8 },
+  { code: "EC", name: "Ecuador", dialCode: "593", phoneDigits: 9 },
+  { code: "SV", name: "El Salvador", dialCode: "503", phoneDigits: 8 },
+  { code: "GT", name: "Guatemala", dialCode: "502", phoneDigits: 8 },
+  { code: "HT", name: "Haití", dialCode: "509", phoneDigits: 8 },
+  { code: "HN", name: "Honduras", dialCode: "504", phoneDigits: 8 },
+  { code: "MX", name: "México", dialCode: "52", phoneDigits: 10 },
+  { code: "NI", name: "Nicaragua", dialCode: "505", phoneDigits: 8 },
+  { code: "PA", name: "Panamá", dialCode: "507", phoneDigits: 8 },
+  { code: "PY", name: "Paraguay", dialCode: "595", phoneDigits: 9 },
+  { code: "PE", name: "Perú", dialCode: "51", phoneDigits: 9 },
+  { code: "DO", name: "República Dominicana", dialCode: "1", phoneDigits: 10 },
+  { code: "UY", name: "Uruguay", dialCode: "598", phoneDigits: 8 },
+  { code: "VE", name: "Venezuela", dialCode: "58", phoneDigits: 10 },
 ];
 
 /** Quita cualquier prefijo "+<código> " ya presente, dejando solo dígitos. */
@@ -242,12 +245,12 @@ export function AssessmentProfileWizardPage({
   const [mainMarkets, setMainMarkets] = useState("");
 
   const selectedCountry = LATAM_COUNTRIES.find((c) => c.code === country);
+  const phoneDigits = selectedCountry?.phoneDigits ?? DEFAULT_PHONE_DIGITS;
   const phoneNationalDigits = stripPhonePrefix(contactPhone);
   const phoneDigitsError =
-    phoneNationalDigits.length > 0 &&
-    phoneNationalDigits.length !== PHONE_DIGITS
+    phoneNationalDigits.length > 0 && phoneNationalDigits.length !== phoneDigits
       ? t("app.assessment.wizard.phoneDigitsError", {
-          digits: PHONE_DIGITS,
+          digits: phoneDigits,
         })
       : null;
 
@@ -478,7 +481,7 @@ export function AssessmentProfileWizardPage({
   };
 
   const handlePhoneChange = (raw: string) => {
-    const digits = stripPhonePrefix(raw).slice(0, PHONE_DIGITS);
+    const digits = stripPhonePrefix(raw).slice(0, phoneDigits);
     setContactPhone(
       selectedCountry ? `+${selectedCountry.dialCode} ${digits}` : digits
     );
@@ -880,7 +883,7 @@ export function AssessmentProfileWizardPage({
                     handlePhoneChange(e.target.value);
                   }}
                   placeholder={t("app.assessment.wizard.phonePlaceholder", {
-                    digits: PHONE_DIGITS,
+                    digits: phoneDigits,
                   })}
                   className="mt-1"
                 />
