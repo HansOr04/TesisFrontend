@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { Users, AlertTriangle, BarChart3, Folder } from "lucide-react";
 import { Gauge, gaugeColor } from "./gauge";
 import { CriticalKpiPanel } from "./critical-kpi-panel";
+import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 import type {
   AssessmentCriticalIndicator,
   AssessmentIndicatorData,
@@ -114,8 +115,12 @@ export function ExecutiveSummary({
       t("app.assessment.organizational.completeEvaluation"),
   };
 
+  // Mismo criterio que el formulario: un KPI desactivado o que no aplica a
+  // esta organización no se pide, así que tampoco cuenta en el total.
+  const countedIndicators = (section?: EvaluatedSection) =>
+    section?.indicators.filter((i) => countsInEvaluation(i)).length ?? 0;
   const totalIndicators = sections.reduce(
-    (sum, s) => sum + s.indicators.length,
+    (sum, s) => sum + countedIndicators(s),
     0
   );
   const answeredIndicators = responses.length;
@@ -316,7 +321,7 @@ export function ExecutiveSummary({
                     </td>
                     <td className="text-center py-2 px-4">
                       {sectionResponses.length} /{" "}
-                      {sectionDef?.indicators.length ?? 0}
+                      {countedIndicators(sectionDef)}
                     </td>
                     <td className="text-center py-2 px-4">
                       {sectionResponses.filter((r) => r.isCritical).length}
