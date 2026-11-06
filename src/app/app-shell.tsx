@@ -366,7 +366,15 @@ function AppShellInner() {
           </div>
         </header>
         <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6 animate-fade-up">
-          <Outlet />
+          {/* Sin rol en el proyecto el servidor responde 403 a todo: en vez de
+              pantallas vacías, se explica qué falta. */}
+          {auth.isActuallySuperAdmin || auth.currentRoles.length > 0 ? (
+            <Outlet />
+          ) : (
+            <div className="surface p-8 text-center text-muted-foreground">
+              {t("app.shell.noRole")}
+            </div>
+          )}
         </main>
       </div>
     </div>
