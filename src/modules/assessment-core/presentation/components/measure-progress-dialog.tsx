@@ -29,6 +29,7 @@ import { cn } from "@/shared/lib/utils";
 import { scoreColor } from "@/shared/design/score-colors";
 import type { AssessmentMeasureStatus } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { RingGauge } from "./ring-gauge";
+import { formatDateOnly } from "@/shared/lib/date-only";
 
 export interface MeasureProblem {
   code: string;
@@ -105,11 +106,6 @@ const STATUS_STYLE: Record<
     key: "app.assessment.measure.statusDone",
   },
 };
-
-function fmtDate(value: string) {
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
-}
 
 // Ventana de seguimiento de una medida: recorre el flujo Problema detectado →
 // Solución propuesta → Registrar avance (con resultado esperado y mejoras
@@ -298,8 +294,8 @@ export function MeasureProgressDialog({
                             {t("app.assessment.measure.period")}
                           </dt>
                           <dd className="font-semibold">
-                            {fmtDate(solution.startDate)} →{" "}
-                            {fmtDate(solution.endDate)}
+                            {formatDateOnly(solution.startDate)} →{" "}
+                            {formatDateOnly(solution.endDate)}
                           </dd>
                         </div>
                       </div>

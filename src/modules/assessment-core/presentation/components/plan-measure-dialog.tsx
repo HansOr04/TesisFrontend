@@ -29,6 +29,7 @@ import { cn } from "@/shared/lib/utils";
 import { scoreColor } from "@/shared/design/score-colors";
 import { RingGauge } from "./ring-gauge";
 import type { MeasureProblem } from "./measure-progress-dialog";
+import { toInputDate } from "@/shared/lib/date-only";
 
 export interface PlanMeasureValues {
   name?: string;
@@ -63,10 +64,6 @@ interface PlanMeasureDialogProps {
   /** Motivo por el que no se puede planificar (p.ej. riesgo despreciable). */
   blockedReason?: string | null;
   t: (key: string) => string;
-}
-
-function toInputDate(d: Date) {
-  return d.toISOString().slice(0, 10);
 }
 
 function nextMonday(from = new Date()) {
