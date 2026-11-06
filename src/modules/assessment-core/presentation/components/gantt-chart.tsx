@@ -1,6 +1,7 @@
 import { SCORE_COLORS } from "@/shared/design/score-colors";
 import { useTranslation } from "@/shared/i18n/i18n";
 import type { AssessmentGanttItem } from "@/modules/risk-tool/infrastructure/risk-api";
+import { parseDateOnly } from "@/shared/lib/date-only";
 
 // Cronograma de mitigación/acción (RF-06, luego rediseñado): barra horizontal por
 // medida, posicionada por CSS (offset%/ancho% dentro del rango total de fechas) —
@@ -16,7 +17,7 @@ const GREEN = SCORE_COLORS.high;
 
 function scheduleColor(item: AssessmentGanttItem, nowMs: number): string {
   if (item.status === "DONE") return GREEN;
-  const endMs = new Date(item.end).getTime();
+  const endMs = parseDateOnly(item.end).getTime();
   return nowMs > endMs ? RED : YELLOW;
 }
 
@@ -38,7 +39,7 @@ function formatWeekLabel(date: Date): string {
 }
 
 function formatShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+  return parseDateOnly(iso).toLocaleDateString(undefined, {
     day: "2-digit",
     month: "2-digit",
   });
@@ -74,8 +75,11 @@ export function GanttChart({
   }
 
   const now = Date.now();
-  const starts = [...measures.map((m) => new Date(m.start).getTime()), now];
-  const ends = [...measures.map((m) => new Date(m.end).getTime()), now];
+  const starts = [
+    ...measures.map((m) => parseDateOnly(m.start).getTime()),
+    now,
+  ];
+  const ends = [...measures.map((m) => parseDateOnly(m.end).getTime()), now];
   const rangeStart = startOfWeek(new Date(Math.min(...starts)));
   const rangeEndRaw = new Date(Math.max(...ends));
   const rangeEnd = new Date(
@@ -127,13 +131,13 @@ export function GanttChart({
         </div>
         <div className="space-y-2">
           {measures.map((m) => {
-            const left = pctFor(new Date(m.start));
+            const left = pctFor(parseDateOnly(m.start));
             const width = Math.max(
-              pctFor(new Date(m.end)) - left,
+              pctFor(parseDateOnly(m.end)) - left,
               2 // ancho mínimo visible
             );
             const color = scheduleColor(m, now);
-            const endMs = new Date(m.end).getTime();
+            const endMs = parseDateOnly(m.end).getTime();
             const overdueDays =
               m.status !== "DONE" && now > endMs
                 ? Math.ceil((now - endMs) / MS_PER_DAY)
