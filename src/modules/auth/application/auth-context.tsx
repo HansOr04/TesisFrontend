@@ -28,6 +28,8 @@ export interface AuthContextValue extends AuthState {
   setCurrentOrganisation: (organisation: string) => void;
   /** Roles del usuario en la organización actual. */
   currentRoles: string[];
+  /** Administra el proyecto actual: assessment_admin o superadministrador. */
+  canAdminister: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -128,12 +130,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // Las consultas se guardan por proyecto, no por usuario: sin vaciarlas, quien
+  // entra después en el mismo navegador (un equipo compartido en el taller)
+  // veía las organizaciones del usuario anterior hasta recargar la página.
   const applySession = useCallback(
     async (session: AuthSession) => {
+      queryClient.clear();
       sessionToken.set(session.accessToken);
       await hydrate(session.accessToken);
     },
-    [hydrate]
+    [hydrate, queryClient]
   );
 
   const login = useCallback(
@@ -164,13 +170,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     void logoutSession();
     sessionToken.set(null);
+    queryClient.clear();
     setState({
       status: "anonymous",
       roles: [],
       isActuallySuperAdmin: false,
       sessionExpired: false,
     });
-  }, []);
+  }, [queryClient]);
 
   const setCurrentOrganisation = useCallback((organisation: string) => {
     localStorage.setItem(ORG_KEY, organisation);
@@ -181,20 +188,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
+  const value = useMemo<AuthContextValue>(() => {
+    const currentRoles =
+      state.roles.find((r) => r.organisation === state.organisations?.current)
+        ?.roles ?? [];
+    return {
       ...state,
       login,
       loginGoogle,
       logout,
       resumeSession,
       setCurrentOrganisation,
-      currentRoles:
-        state.roles.find((r) => r.organisation === state.organisations?.current)
-          ?.roles ?? [],
-    }),
-    [state, login, loginGoogle, logout, resumeSession, setCurrentOrganisation]
-  );
+      currentRoles,
+      canAdminister:
+        state.isActuallySuperAdmin || currentRoles.includes("assessment_admin"),
+    };
+  }, [
+    state,
+    login,
+    loginGoogle,
+    logout,
+    resumeSession,
+    setCurrentOrganisation,
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

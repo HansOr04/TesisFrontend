@@ -128,13 +128,15 @@ export function RiskPanelGeneralPage() {
             {t("app.assessment.risk.subtitle")}
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => void navigate({ to: "/assessments/risk/admin" })}
-        >
-          <Pencil className="h-4 w-4 mr-1" />
-          {t("app.assessment.admin.manageStructure")}
-        </Button>
+        {auth.canAdminister && (
+          <Button
+            variant="outline"
+            onClick={() => void navigate({ to: "/assessments/risk/admin" })}
+          >
+            <Pencil className="h-4 w-4 mr-1" />
+            {t("app.assessment.admin.manageStructure")}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -30,6 +30,9 @@ export function AssessmentProfilesPage() {
   const navigate = useNavigate({ from: "/assessments/" });
 
   const org = auth.organisations?.current;
+  // Elegir el evaluador responsable es del administrador; el servidor rechaza
+  // el cambio si lo intenta un evaluador.
+  const canAssignEvaluator = auth.canAdminister;
 
   const queryClient = useQueryClient();
   const profilesQuery = useQuery(coreQueries.profiles(org));
@@ -191,17 +194,21 @@ export function AssessmentProfilesPage() {
                             <Pencil className="h-4 w-4" />
                             {t("app.assessment.wizard.edit")}
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            title={t(
-                              "app.assessment.profiles.assignEvaluatorTitle"
-                            )}
-                            onClick={() => setAssigningProfile(p)}
-                          >
-                            <UserCog className="h-4 w-4" />
-                            {t("app.assessment.profiles.assignEvaluatorAction")}
-                          </Button>
+                          {canAssignEvaluator && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title={t(
+                                "app.assessment.profiles.assignEvaluatorTitle"
+                              )}
+                              onClick={() => setAssigningProfile(p)}
+                            >
+                              <UserCog className="h-4 w-4" />
+                              {t(
+                                "app.assessment.profiles.assignEvaluatorAction"
+                              )}
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -312,19 +319,21 @@ export function AssessmentProfilesPage() {
                                 <Pencil className="h-4 w-4" />
                                 {t("app.assessment.wizard.edit")}
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                title={t(
-                                  "app.assessment.profiles.assignEvaluatorTitle"
-                                )}
-                                onClick={() => setAssigningProfile(child)}
-                              >
-                                <UserCog className="h-4 w-4" />
-                                {t(
-                                  "app.assessment.profiles.assignEvaluatorAction"
-                                )}
-                              </Button>
+                              {canAssignEvaluator && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  title={t(
+                                    "app.assessment.profiles.assignEvaluatorTitle"
+                                  )}
+                                  onClick={() => setAssigningProfile(child)}
+                                >
+                                  <UserCog className="h-4 w-4" />
+                                  {t(
+                                    "app.assessment.profiles.assignEvaluatorAction"
+                                  )}
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
