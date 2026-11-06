@@ -63,12 +63,13 @@ import {
 } from "@/modules/assessment-core/presentation/components/measure-progress-dialog";
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
 import { cn } from "@/shared/lib/utils";
+import { formatDateOnly, parseDateOnly } from "@/shared/lib/date-only";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 /** Días enteros de `now` a `value` (negativo si ya pasó), como el Gantt. */
 function daysUntil(value: string, now: number): number {
-  const diff = new Date(value).getTime() - now;
+  const diff = parseDateOnly(value).getTime() - now;
   return diff >= 0
     ? Math.ceil(diff / MS_PER_DAY)
     : -Math.ceil(-diff / MS_PER_DAY);
@@ -659,9 +660,9 @@ export function RiskMitigationPage() {
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1.5">
                             <Calendar className="h-3 w-3 shrink-0" />
                             <span>
-                              {new Date(measure.startWeek).toLocaleDateString()}
+                              {formatDateOnly(measure.startWeek)}
                               {" → "}
-                              {new Date(measure.endDate).toLocaleDateString()}
+                              {formatDateOnly(measure.endDate)}
                             </span>
                           </div>
                           <MeasureCardStatus

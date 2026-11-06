@@ -53,6 +53,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
 import type { IndicatorToolMeasure } from "../../infrastructure/indicator-tool-api";
+import { formatDateOnly } from "@/shared/lib/date-only";
 
 interface SuggestionDraft {
   indicatorId: string;
@@ -630,9 +631,9 @@ export function IndicatorToolActionPlanPage({ def }: { def: IndicatorToolUi }) {
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1.5">
                             <Calendar className="h-3 w-3 shrink-0" />
                             <span>
-                              {new Date(measure.startDate).toLocaleDateString()}
+                              {formatDateOnly(measure.startDate)}
                               {" → "}
-                              {new Date(measure.endDate).toLocaleDateString()}
+                              {formatDateOnly(measure.endDate)}
                             </span>
                           </div>
                           <div className="h-2 rounded-full bg-muted overflow-hidden mt-3 border border-black/5">

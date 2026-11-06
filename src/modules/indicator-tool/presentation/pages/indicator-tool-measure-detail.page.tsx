@@ -15,6 +15,7 @@ import type { AssessmentMeasureStatus } from "@/modules/assessment-core/infrastr
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
 import type { IndicatorToolUi } from "../../domain/indicator-tool-ui";
 import type { IndicatorToolMeasure } from "../../infrastructure/indicator-tool-api";
+import { formatDateOnly } from "@/shared/lib/date-only";
 
 const STATUS_BADGE: Record<AssessmentMeasureStatus, string> = {
   PENDING: "bg-muted text-muted-foreground",
@@ -228,8 +229,8 @@ export function IndicatorToolMeasureDetailPage({
                 {t(`${def.i18n}.measureStartDate`)} →{" "}
                 {t(`${def.i18n}.measureEndDate`)}
               </span>
-              {new Date(measure.startDate).toLocaleDateString()} →{" "}
-              {new Date(measure.endDate).toLocaleDateString()}
+              {formatDateOnly(measure.startDate)} →{" "}
+              {formatDateOnly(measure.endDate)}
             </span>
           </span>
         </CardContent>

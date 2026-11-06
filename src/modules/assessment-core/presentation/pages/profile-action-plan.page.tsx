@@ -15,6 +15,7 @@ import type {
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { RingGauge } from "@/modules/assessment-core/presentation/components/ring-gauge";
 import { cn } from "@/shared/lib/utils";
+import { formatDateOnly } from "@/shared/lib/date-only";
 
 type Tool = ProfileActionPlanMeasure["tool"];
 
@@ -62,12 +63,19 @@ const STATUS: Record<AssessmentMeasureStatus, { key: string; chip: string }> = {
   },
 };
 
+const DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+};
+
 function fmtDate(value: string) {
-  return new Date(value).toLocaleDateString("es-EC", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(value).toLocaleDateString("es-EC", DATE_FORMAT);
+}
+
+/** Inicio y fin de una medida: días de calendario, sin zona horaria. */
+function fmtDay(value: string) {
+  return formatDateOnly(value, "es-EC", DATE_FORMAT);
 }
 
 /**
@@ -303,7 +311,7 @@ export function ProfileActionPlanPage() {
                                 {m.responsible}
                               </td>
                               <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
-                                {fmtDate(m.startDate)} → {fmtDate(m.endDate)}
+                                {fmtDay(m.startDate)} → {fmtDay(m.endDate)}
                               </td>
                               <td className="px-3 py-2.5 text-center">
                                 <span
