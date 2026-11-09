@@ -22,3 +22,5 @@ El repo incluye `vercel.json` (build `npm run build`, output `dist`, rewrite SPA
 3. En el backend, agrega la URL que asigne Vercel (ej. `https://tu-app.vercel.app`) a `CORS_ORIGIN`.
 
 Si usas Google OAuth, define también `VITE_GOOGLE_OAUTH_CLIENT_ID` (debe coincidir con `GOOGLE_OAUTH_CLIENT_ID` del backend).
+
+Las variables `VITE_*` terminan dentro del JavaScript que descarga el navegador: nunca deben llevar una clave secreta. Entornos y dónde vive cada variable: [`docs/entornos-y-secretos.md`](https://github.com/HansOr04/TesisProyectoBack/blob/main/docs/entornos-y-secretos.md) del repositorio del servidor.
