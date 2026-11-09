@@ -15,6 +15,7 @@ import {
   logoutSession,
 } from "../infrastructure/auth-api";
 import { refreshAccessToken, sessionToken } from "@/shared/api/session-token";
+import { fetchOrganisations } from "../infrastructure/organisations-api";
 import { SessionExpiredDialog } from "@/modules/auth/presentation/session-expired-dialog";
 
 const ORG_KEY = "assessment.currentOrganisation";
@@ -26,6 +27,8 @@ export interface AuthContextValue extends AuthState {
   /** Reanuda la sesión caducada sin salir de la pantalla en la que se está. */
   resumeSession: (password: string) => Promise<void>;
   setCurrentOrganisation: (organisation: string) => void;
+  /** Vuelve a leer los proyectos (p. ej. después de crear uno). */
+  reloadProjects: () => Promise<void>;
   /** Roles del usuario en la organización actual. */
   currentRoles: string[];
   /** Administra el proyecto actual: assessment_admin o superadministrador. */
@@ -59,7 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hydrate = useCallback(async (token: string) => {
     const me = await fetchMe(token);
-    const allowed = me.organisations.map((o) => o.organisation);
+    const memberOf = me.organisations.map((o) => o.organisation);
+    // El superadministrador administra todos los proyectos, no solo aquellos
+    // de los que es miembro: sin esto no podía entrar a uno que acababa de crear.
+    const allowed = me.isSuperAdmin
+      ? [
+          ...new Set([
+            ...memberOf,
+            ...(await fetchOrganisations(token)).map((o) => o.id),
+          ]),
+        ]
+      : memberOf;
     setState({
       status: "authenticated",
       currentUser: {
@@ -188,6 +201,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  // El proyecto actual se conserva: hydrate lo recupera de localStorage.
+  const reloadProjects = useCallback(async () => {
+    const token = sessionToken.get();
+    if (token) await hydrate(token);
+  }, [hydrate]);
+
   const value = useMemo<AuthContextValue>(() => {
     const currentRoles =
       state.roles.find((r) => r.organisation === state.organisations?.current)
@@ -199,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       resumeSession,
       setCurrentOrganisation,
+      reloadProjects,
       currentRoles,
       canAdminister:
         state.isActuallySuperAdmin || currentRoles.includes("assessment_admin"),
@@ -210,6 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     resumeSession,
     setCurrentOrganisation,
+    reloadProjects,
   ]);
 
   return (
