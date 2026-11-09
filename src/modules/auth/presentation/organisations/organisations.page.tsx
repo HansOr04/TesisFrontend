@@ -268,6 +268,8 @@ function OrganisationFormDialog({
       });
       reset();
       onCreated();
+      // El proyecto nuevo aparece en el selector sin volver a entrar.
+      void auth.reloadProjects();
     },
     onError: (err) =>
       setError(err instanceof Error ? err.message : t("app.common.error")),
