@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Eye,
   KeyRound,
   Plus,
   Shield,
@@ -34,39 +35,20 @@ import {
   type AssessmentRoleCode,
   type OrganisationUser,
 } from "../../infrastructure/users-api";
-
-// Etiquetas y descripciones vienen del diccionario (app.users.role*).
-const ROLE_OPTIONS: {
-  code: AssessmentRoleCode | "";
-  label: string;
-  description: string;
-}[] = [
-  {
-    code: "assessment_evaluator",
-    label: "app.users.roleEvaluator",
-    description: "app.users.roleEvaluatorDescription",
-  },
-  {
-    code: "assessment_admin",
-    label: "app.users.roleAdmin",
-    description: "app.users.roleAdminDescription",
-  },
-  {
-    code: "",
-    label: "app.users.roleNone",
-    description: "app.users.roleNoneDescription",
-  },
-];
-
-function roleOf(u: OrganisationUser): AssessmentRoleCode | "" {
-  return (u.roles[0]?.code as AssessmentRoleCode | undefined) ?? "";
-}
+import { ROLE_OPTIONS, roleOf, roleTone } from "./roles";
+import {
+  ViewerVisibilityDialog,
+  useVisibilitySummary,
+  viewerVisibilityOf,
+} from "./viewer-visibility-dialog";
 
 // Administración de usuarios y permisos de la organización actual.
 export function UsersPage() {
   const auth = useAuth();
   const { t, tr } = useTranslation();
   const org = auth.organisations?.current;
+  // Solo el superadministrador dueño del proyecto otorga superadministrador.
+  const ownsProject = Boolean(org && auth.ownedProjects.includes(org));
   const token = auth.currentUser?.accessToken;
   const queryClient = useQueryClient();
   const usersQuery = useQuery(usersQueries.list(org));
@@ -78,6 +60,10 @@ export function UsersPage() {
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState<OrganisationUser | null>(null);
   const [passwordFor, setPasswordFor] = useState<OrganisationUser | null>(null);
+  const [visibilityFor, setVisibilityFor] = useState<OrganisationUser | null>(
+    null
+  );
+  const visibilitySummary = useVisibilitySummary();
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
@@ -181,7 +167,7 @@ export function UsersPage() {
 
       <div className="surface p-6">
         <h3 className="text-lg font-extrabold">{t("app.users.rolesTitle")}</h3>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {ROLE_OPTIONS.map((r) => (
             <div key={r.code} className="rounded-2xl bg-muted/50 p-5">
               <div className="text-base font-bold">{t(r.label)}</div>
@@ -191,7 +177,7 @@ export function UsersPage() {
             </div>
           ))}
         </div>
-        {auth.isActuallySuperAdmin && (
+        {ownsProject && (
           <p className="mt-4 text-sm text-muted-foreground">
             {tr("app.users.superAdminNote")}
           </p>
@@ -228,6 +214,9 @@ export function UsersPage() {
               {users.map((u) => {
                 const role = roleOf(u);
                 const isMe = u.id === auth.currentUser?.id;
+                // La cuenta de un superadministrador (contraseña, activación)
+                // solo la toca otro superadministrador; aquí se gestiona su rol.
+                const accountLocked = u.isSuperAdmin && !ownsProject;
                 return (
                   <tr
                     key={u.id}
@@ -263,11 +252,7 @@ export function UsersPage() {
                         <span
                           className={cn(
                             "rounded-lg px-2 py-1 text-xs font-bold",
-                            role === "assessment_admin"
-                              ? "bg-success/12 text-success"
-                              : role === "assessment_evaluator"
-                                ? "bg-[#196AC8]/10 text-[#196AC8]"
-                                : "bg-muted text-muted-foreground"
+                            roleTone(role)
                           )}
                         >
                           {t(
@@ -276,6 +261,11 @@ export function UsersPage() {
                           )}
                         </span>
                       </div>
+                      {role === "assessment_viewer" && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {visibilitySummary(viewerVisibilityOf(u))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {[
@@ -311,15 +301,28 @@ export function UsersPage() {
                         >
                           {t("app.users.edit")}
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title={t("app.users.changePassword")}
-                          onClick={() => setPasswordFor(u)}
-                        >
-                          <KeyRound className="h-4 w-4" />
-                        </Button>
-                        {!isMe && (
+                        {role === "assessment_viewer" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.users.visibilityAction")}
+                            onClick={() => setVisibilityFor(u)}
+                          >
+                            <Eye className="h-4 w-4" />{" "}
+                            {t("app.users.visibilityAction")}
+                          </Button>
+                        )}
+                        {!accountLocked && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.users.changePassword")}
+                            onClick={() => setPasswordFor(u)}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isMe && !accountLocked && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -391,12 +394,13 @@ export function UsersPage() {
         open={showNew}
         onOpenChange={setShowNew}
         title={t("app.users.new")}
-        canGrantSuperAdmin={auth.isActuallySuperAdmin}
+        canGrantSuperAdmin={ownsProject}
         saving={saving}
         onSubmit={async (v) => {
+          let created: OrganisationUser | null = null;
           const ok = await run(
-            () =>
-              createOrganisationUser(
+            async () =>
+              (created = await createOrganisationUser(
                 org!,
                 {
                   email: v.email,
@@ -406,10 +410,13 @@ export function UsersPage() {
                   isSuperAdmin: v.isSuperAdmin || undefined,
                 },
                 token
-              ),
+              )),
             t("app.users.created", { email: v.email })
           );
           if (ok) setShowNew(false);
+          // Un visualizador nuevo no ve nada hasta que se le habilite algo.
+          if (ok && created && v.roleCode === "assessment_viewer")
+            setVisibilityFor(created);
         }}
       />
       <UserFormDialog
@@ -428,9 +435,8 @@ export function UsersPage() {
             : undefined
         }
         editMode
-        canGrantSuperAdmin={
-          auth.isActuallySuperAdmin && editing?.id !== auth.currentUser?.id
-        }
+        lockName={Boolean(editing?.isSuperAdmin && !ownsProject)}
+        canGrantSuperAdmin={ownsProject && editing?.id !== auth.currentUser?.id}
         saving={saving}
         onSubmit={async (v) => {
           if (!editing) return;
@@ -440,10 +446,9 @@ export function UsersPage() {
                 org!,
                 editing.id,
                 {
-                  name: v.name,
+                  ...(v.name !== (editing.name ?? "") ? { name: v.name } : {}),
                   roleCode: v.roleCode || null,
-                  ...(auth.isActuallySuperAdmin &&
-                  editing.id !== auth.currentUser?.id
+                  ...(ownsProject && editing.id !== auth.currentUser?.id
                     ? { isSuperAdmin: v.isSuperAdmin }
                     : {}),
                 },
@@ -452,8 +457,25 @@ export function UsersPage() {
             t("app.users.updated")
           );
           if (ok) setEditing(null);
+          if (
+            ok &&
+            v.roleCode === "assessment_viewer" &&
+            roleOf(editing) !== "assessment_viewer"
+          )
+            setVisibilityFor(editing);
         }}
       />
+      {org && (
+        <ViewerVisibilityDialog
+          org={org}
+          user={visibilityFor}
+          onOpenChange={(o) => !o && setVisibilityFor(null)}
+          onSaved={() => {
+            setVisibilityFor(null);
+            void load();
+          }}
+        />
+      )}
       <PasswordDialog
         user={passwordFor}
         onOpenChange={(o) => !o && setPasswordFor(null)}
@@ -486,6 +508,7 @@ function UserFormDialog({
   title,
   initial,
   editMode,
+  lockName,
   canGrantSuperAdmin,
   saving,
   onSubmit,
@@ -495,6 +518,7 @@ function UserFormDialog({
   title: string;
   initial?: FormValues;
   editMode?: boolean;
+  lockName?: boolean;
   canGrantSuperAdmin: boolean;
   saving: boolean;
   onSubmit: (v: FormValues) => Promise<void>;
@@ -560,6 +584,7 @@ function UserFormDialog({
               value={v.name}
               onChange={(e) => setV({ ...v, name: e.target.value })}
               className="mt-1.5"
+              disabled={lockName}
               placeholder={t("app.users.namePlaceholder")}
             />
           </div>
