@@ -10,9 +10,11 @@ import {
 import {
   createOrganisationUser,
   removeOrganisationUser,
+  setViewerVisibility,
   updateOrganisationUser,
   type AssessmentRoleCode,
   type OrganisationUser,
+  type ViewerVisibility,
 } from "@/modules/auth/infrastructure/users-api";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { Button } from "@/shared/ui/button";
@@ -29,7 +31,10 @@ import { toast } from "@/shared/ui/use-toast";
 import { cn } from "@/shared/lib/utils";
 import { ROLE_OPTIONS, roleOf, roleTone } from "../users/roles";
 import {
+  NO_VISIBILITY,
+  ViewerScopePicker,
   ViewerVisibilityDialog,
+  normalizeVisibility,
   useVisibilitySummary,
   viewerVisibilityOf,
 } from "../users/viewer-visibility-dialog";
@@ -105,6 +110,7 @@ export function ProjectMembersDialog({
     "assessment_evaluator"
   );
   const [draft, setDraft] = useState({ email: "", name: "", password: "" });
+  const [visibility, setVisibility] = useState<ViewerVisibility>(NO_VISIBILITY);
   const [visibilityFor, setVisibilityFor] = useState<OrganisationUser | null>(
     null
   );
@@ -117,6 +123,7 @@ export function ProjectMembersDialog({
     setPickedId(null);
     setRole("assessment_evaluator");
     setDraft({ email: "", name: "", password: "" });
+    setVisibility(NO_VISIBILITY);
   }, [open, org]);
 
   const memberIds = new Set(members.map((m) => m.id));
@@ -144,25 +151,35 @@ export function ProjectMembersDialog({
     });
 
   const add = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
+      let user: OrganisationUser;
       if (mode === "existing") {
         if (!picked) throw new Error(t("app.organisations.membersPickUser"));
-        return createOrganisationUser(org!, {
+        user = await createOrganisationUser(org!, {
           email: picked.email,
           name: picked.name ?? picked.email,
           roleCode: role || undefined,
         });
+      } else {
+        if (!draft.email.trim() || !draft.name.trim())
+          throw new Error(t("app.users.validationRequired"));
+        if (draft.password && draft.password.length < 8)
+          throw new Error(t("app.users.validationPassword"));
+        user = await createOrganisationUser(org!, {
+          email: draft.email.trim(),
+          name: draft.name.trim(),
+          password: draft.password || undefined,
+          roleCode: role || undefined,
+        });
       }
-      if (!draft.email.trim() || !draft.name.trim())
-        throw new Error(t("app.users.validationRequired"));
-      if (draft.password && draft.password.length < 8)
-        throw new Error(t("app.users.validationPassword"));
-      return createOrganisationUser(org!, {
-        email: draft.email.trim(),
-        name: draft.name.trim(),
-        password: draft.password || undefined,
-        roleCode: role || undefined,
-      });
+      // Lo que ve el visualizador se marcó junto con el rol.
+      if (role === "assessment_viewer")
+        await setViewerVisibility(
+          org!,
+          user.id,
+          normalizeVisibility(visibility)
+        );
+      return user;
     },
     onSuccess: async (user) => {
       toast({
@@ -171,15 +188,17 @@ export function ProjectMembersDialog({
       });
       setPickedId(null);
       setDraft({ email: "", name: "", password: "" });
+      setVisibility(NO_VISIBILITY);
       await refresh();
-      if (role === "assessment_viewer") setVisibilityFor(user);
     },
     onError: fail,
   });
 
   const changeRole = useMutation({
-    mutationFn: (v: { user: OrganisationUser; role: AssessmentRoleCode | "" }) =>
-      updateOrganisationUser(org!, v.user.id, { roleCode: v.role || null }),
+    mutationFn: (v: {
+      user: OrganisationUser;
+      role: AssessmentRoleCode | "";
+    }) => updateOrganisationUser(org!, v.user.id, { roleCode: v.role || null }),
     onSuccess: async (user, v) => {
       toast({ title: t("app.users.updated"), variant: "success" });
       await refresh();
@@ -307,7 +326,9 @@ export function ProjectMembersDialog({
                     id="member-name"
                     className="mt-1.5"
                     value={draft.name}
-                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    onChange={(e) =>
+                      setDraft({ ...draft, name: e.target.value })
+                    }
                     placeholder={t("app.users.namePlaceholder")}
                   />
                 </div>
@@ -335,7 +356,11 @@ export function ProjectMembersDialog({
                   {t("app.users.roleInOrganisation")}
                 </Label>
                 <div className="mt-1.5">
-                  <RoleSelect id="member-role" value={role} onChange={setRole} />
+                  <RoleSelect
+                    id="member-role"
+                    value={role}
+                    onChange={setRole}
+                  />
                 </div>
               </div>
               <Button
@@ -354,6 +379,22 @@ export function ProjectMembersDialog({
                   "app.users.roleNoneDescription"
               )}
             </p>
+            {role === "assessment_viewer" && org && (
+              <div className="mt-4">
+                <Label className={lbl}>{t("app.users.visibilityTitle")}</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("app.users.visibilityInline")}
+                </p>
+                <div className="mt-2">
+                  <ViewerScopePicker
+                    org={org}
+                    value={visibility}
+                    onChange={setVisibility}
+                    listClassName="max-h-48"
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           <section>

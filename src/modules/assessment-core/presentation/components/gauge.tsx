@@ -58,11 +58,17 @@ export function Gauge({ value, label, weightLabel, size = "sm" }: GaugeProps) {
 
   return (
     <div
-      className="flex flex-col items-center"
+      className="flex w-full flex-col items-center"
       data-testid="gauge"
-      style={{ width: box }}
+      style={{ maxWidth: box }}
     >
-      <svg width={box} height={cy + 14} viewBox={`0 0 ${box} ${cy + 14}`}>
+      {/* Se adapta al ancho de su tarjeta, sin pasar de su tamaño nominal. */}
+      <svg
+        className="h-auto w-full"
+        viewBox={`0 0 ${box} ${cy + 14}`}
+        role="img"
+        aria-label={clamped.toFixed(1)}
+      >
         <path
           d={arcPath(cx, cy, r, 180, 90)}
           fill="none"

@@ -4,6 +4,8 @@ import { Button } from "@/shared/ui/button";
 import { Users, AlertTriangle, BarChart3, Folder } from "lucide-react";
 import { Gauge, gaugeColor } from "./gauge";
 import { CriticalKpiPanel } from "./critical-kpi-panel";
+import { CompleteEvaluationDialog } from "./complete-evaluation-dialog";
+import { useState } from "react";
 import { countsInEvaluation } from "@/modules/assessment-core/domain/kpi-scope";
 import type {
   AssessmentCriticalIndicator,
@@ -128,6 +130,7 @@ export function ExecutiveSummary({
     s.indicators.some((i) => responses.some((r) => r.indicatorId === i.id))
   ).length;
   const weightTotal = sectionScores.reduce((sum, s) => sum + s.weight, 0) || 1;
+  const [confirming, setConfirming] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -195,8 +198,8 @@ export function ExecutiveSummary({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+        <Card className="flex h-full flex-col">
           <CardHeader className="pb-2">
             <CardTitle
               className="text-base"
@@ -206,7 +209,7 @@ export function ExecutiveSummary({
             </CardTitle>
             <p className="text-xs text-muted-foreground">{label.subtitle}</p>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-3">
+          <CardContent className="flex flex-1 flex-col items-center justify-center gap-3">
             <Gauge value={globalScore} size="lg" />
             <Badge
               className="text-white"
@@ -232,27 +235,27 @@ export function ExecutiveSummary({
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Velocímetros del mismo tamaño en una cuadrícula pareja: el nombre
+            ocupa siempre dos líneas para que todos queden alineados. */}
+        <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 2xl:grid-cols-3">
           {sectionScores.map((section) => (
             <Card
               key={section.sectionId}
               className={
                 onDimensionClick
-                  ? "cursor-pointer hover:border-primary transition-colors"
-                  : undefined
+                  ? "h-full cursor-pointer transition-colors hover:border-primary"
+                  : "h-full"
               }
               onClick={() => onDimensionClick?.(section.number)}
             >
-              <CardContent className="flex flex-col items-center py-4">
-                <p className="text-xs font-semibold text-center mb-1">
+              <CardContent className="flex h-full flex-col items-center justify-between gap-1 py-4">
+                <p
+                  className="line-clamp-2 min-h-[2rem] text-center text-xs font-semibold leading-4"
+                  title={`${section.number}. ${section.name}`}
+                >
                   {section.number}. {section.name}
                 </p>
-                <Gauge
-                  value={section.weightedAvg}
-                  weightLabel={`${t("app.assessment.organizational.colWeight").toUpperCase()} ${Math.round(
-                    (section.weight / weightTotal) * 100
-                  )}%`}
-                />
+                <Gauge value={section.weightedAvg} />
               </CardContent>
             </Card>
           ))}
@@ -353,11 +356,20 @@ export function ExecutiveSummary({
           {missingMessage && (
             <p className="text-sm text-destructive">{missingMessage}</p>
           )}
-          <Button onClick={onComplete} disabled={completing}>
+          <Button onClick={() => setConfirming(true)} disabled={completing}>
             {label.completeEvaluation}
           </Button>
         </div>
       )}
+      <CompleteEvaluationDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        onConfirm={onComplete}
+        answered={answeredIndicators}
+        total={totalIndicators}
+        critical={criticalIndicators.length}
+        completing={completing}
+      />
     </div>
   );
 }

@@ -5,7 +5,9 @@ import type { AssessmentEvaluationHistoryEntry } from "@/modules/assessment-core
 
 // El gráfico (recharts) necesita ResizeObserver, que jsdom no tiene; aquí
 // solo importa la tabla.
-vi.mock("@/shared/components/line-chart", () => ({ LineChart: () => null }));
+vi.mock("@/shared/components/bar-line-chart", () => ({
+  BarLineChart: () => null,
+}));
 
 const t = (key: string) => key;
 

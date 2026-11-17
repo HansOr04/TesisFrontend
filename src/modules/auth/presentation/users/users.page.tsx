@@ -31,13 +31,18 @@ import { cn } from "@/shared/lib/utils";
 import {
   createOrganisationUser,
   removeOrganisationUser,
+  setViewerVisibility,
   updateOrganisationUser,
   type AssessmentRoleCode,
   type OrganisationUser,
+  type ViewerVisibility,
 } from "../../infrastructure/users-api";
 import { ROLE_OPTIONS, roleOf, roleTone } from "./roles";
 import {
+  NO_VISIBILITY,
+  ViewerScopePicker,
   ViewerVisibilityDialog,
+  normalizeVisibility,
   useVisibilitySummary,
   viewerVisibilityOf,
 } from "./viewer-visibility-dialog";
@@ -391,16 +396,16 @@ export function UsersPage() {
       </div>
 
       <UserFormDialog
+        org={org}
         open={showNew}
         onOpenChange={setShowNew}
         title={t("app.users.new")}
         canGrantSuperAdmin={ownsProject}
         saving={saving}
         onSubmit={async (v) => {
-          let created: OrganisationUser | null = null;
           const ok = await run(
-            async () =>
-              (created = await createOrganisationUser(
+            async () => {
+              const created = await createOrganisationUser(
                 org!,
                 {
                   email: v.email,
@@ -410,16 +415,22 @@ export function UsersPage() {
                   isSuperAdmin: v.isSuperAdmin || undefined,
                 },
                 token
-              )),
+              );
+              // Lo que ve el visualizador se eligió en el mismo formulario.
+              if (v.roleCode === "assessment_viewer")
+                await setViewerVisibility(
+                  org!,
+                  created.id,
+                  normalizeVisibility(v.visibility)
+                );
+            },
             t("app.users.created", { email: v.email })
           );
           if (ok) setShowNew(false);
-          // Un visualizador nuevo no ve nada hasta que se le habilite algo.
-          if (ok && created && v.roleCode === "assessment_viewer")
-            setVisibilityFor(created);
         }}
       />
       <UserFormDialog
+        org={org}
         open={editing !== null}
         onOpenChange={(o) => !o && setEditing(null)}
         title={t("app.users.editTitle", { email: editing?.email ?? "" })}
@@ -431,6 +442,7 @@ export function UsersPage() {
                 password: "",
                 roleCode: roleOf(editing),
                 isSuperAdmin: editing.isSuperAdmin,
+                visibility: viewerVisibilityOf(editing) ?? NO_VISIBILITY,
               }
             : undefined
         }
@@ -440,29 +452,27 @@ export function UsersPage() {
         saving={saving}
         onSubmit={async (v) => {
           if (!editing) return;
-          const ok = await run(
-            () =>
-              updateOrganisationUser(
+          const ok = await run(async () => {
+            await updateOrganisationUser(
+              org!,
+              editing.id,
+              {
+                ...(v.name !== (editing.name ?? "") ? { name: v.name } : {}),
+                roleCode: v.roleCode || null,
+                ...(ownsProject && editing.id !== auth.currentUser?.id
+                  ? { isSuperAdmin: v.isSuperAdmin }
+                  : {}),
+              },
+              token
+            );
+            if (v.roleCode === "assessment_viewer")
+              await setViewerVisibility(
                 org!,
                 editing.id,
-                {
-                  ...(v.name !== (editing.name ?? "") ? { name: v.name } : {}),
-                  roleCode: v.roleCode || null,
-                  ...(ownsProject && editing.id !== auth.currentUser?.id
-                    ? { isSuperAdmin: v.isSuperAdmin }
-                    : {}),
-                },
-                token
-              ),
-            t("app.users.updated")
-          );
+                normalizeVisibility(v.visibility)
+              );
+          }, t("app.users.updated"));
           if (ok) setEditing(null);
-          if (
-            ok &&
-            v.roleCode === "assessment_viewer" &&
-            roleOf(editing) !== "assessment_viewer"
-          )
-            setVisibilityFor(editing);
         }}
       />
       {org && (
@@ -500,9 +510,12 @@ interface FormValues {
   password: string;
   roleCode: AssessmentRoleCode | "";
   isSuperAdmin: boolean;
+  /** Solo para el rol de visualizador: qué organizaciones evaluadas ve. */
+  visibility: ViewerVisibility;
 }
 
 function UserFormDialog({
+  org,
   open,
   onOpenChange,
   title,
@@ -513,6 +526,7 @@ function UserFormDialog({
   saving,
   onSubmit,
 }: {
+  org?: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   title: string;
@@ -530,6 +544,7 @@ function UserFormDialog({
     password: "",
     roleCode: "assessment_evaluator",
     isSuperAdmin: false,
+    visibility: NO_VISIBILITY,
   });
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -541,6 +556,7 @@ function UserFormDialog({
           password: "",
           roleCode: "assessment_evaluator",
           isSuperAdmin: false,
+          visibility: NO_VISIBILITY,
         }
       );
       setError(null);
@@ -557,7 +573,7 @@ function UserFormDialog({
   const lbl = "text-xs font-bold uppercase tracking-wide text-muted-foreground";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold">{title}</DialogTitle>
           <DialogDescription>
@@ -632,6 +648,22 @@ function UserFormDialog({
               ))}
             </div>
           </div>
+          {v.roleCode === "assessment_viewer" && org && (
+            <div>
+              <Label className={lbl}>{t("app.users.visibilityTitle")}</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("app.users.visibilityInline")}
+              </p>
+              <div className="mt-2">
+                <ViewerScopePicker
+                  org={org}
+                  value={v.visibility}
+                  onChange={(visibility) => setV({ ...v, visibility })}
+                  listClassName="max-h-48"
+                />
+              </div>
+            </div>
+          )}
           {canGrantSuperAdmin && (
             <label className="flex items-center gap-3 rounded-xl bg-warning/8 p-3 text-sm">
               <input

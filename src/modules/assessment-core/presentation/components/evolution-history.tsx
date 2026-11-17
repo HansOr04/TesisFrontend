@@ -1,7 +1,7 @@
 import { Eye, History, Loader2, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { LineChart } from "@/shared/components/line-chart";
+import { BarLineChart } from "@/shared/components/bar-line-chart";
 import { gaugeColor } from "./gauge";
 import type { Translate } from "@/shared/i18n/i18n";
 import type { AssessmentEvaluationHistoryEntry } from "@/modules/assessment-core/infrastructure/assessment-api";
@@ -163,9 +163,11 @@ export function EvolutionHistory({
           </p>
         ) : (
           <>
-            {shown.length > 1 && (
-              <LineChart chartData={chartData} lineType="linear" showValues />
-            )}
+            <BarLineChart
+              chartData={chartData}
+              barColor={gaugeColor}
+              valueLabel={t("app.assessment.history.rowGlobal")}
+            />
 
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm">
