@@ -214,6 +214,9 @@ export function UsersPage() {
               {users.map((u) => {
                 const role = roleOf(u);
                 const isMe = u.id === auth.currentUser?.id;
+                // La cuenta de un superadministrador (contraseña, activación)
+                // solo la toca otro superadministrador; aquí se gestiona su rol.
+                const accountLocked = u.isSuperAdmin && !ownsProject;
                 return (
                   <tr
                     key={u.id}
@@ -309,15 +312,17 @@ export function UsersPage() {
                             {t("app.users.visibilityAction")}
                           </Button>
                         )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          title={t("app.users.changePassword")}
-                          onClick={() => setPasswordFor(u)}
-                        >
-                          <KeyRound className="h-4 w-4" />
-                        </Button>
-                        {!isMe && (
+                        {!accountLocked && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            title={t("app.users.changePassword")}
+                            onClick={() => setPasswordFor(u)}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isMe && !accountLocked && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -430,9 +435,8 @@ export function UsersPage() {
             : undefined
         }
         editMode
-        canGrantSuperAdmin={
-          ownsProject && editing?.id !== auth.currentUser?.id
-        }
+        lockName={Boolean(editing?.isSuperAdmin && !ownsProject)}
+        canGrantSuperAdmin={ownsProject && editing?.id !== auth.currentUser?.id}
         saving={saving}
         onSubmit={async (v) => {
           if (!editing) return;
@@ -442,10 +446,9 @@ export function UsersPage() {
                 org!,
                 editing.id,
                 {
-                  name: v.name,
+                  ...(v.name !== (editing.name ?? "") ? { name: v.name } : {}),
                   roleCode: v.roleCode || null,
-                  ...(ownsProject &&
-                  editing.id !== auth.currentUser?.id
+                  ...(ownsProject && editing.id !== auth.currentUser?.id
                     ? { isSuperAdmin: v.isSuperAdmin }
                     : {}),
                 },
@@ -505,6 +508,7 @@ function UserFormDialog({
   title,
   initial,
   editMode,
+  lockName,
   canGrantSuperAdmin,
   saving,
   onSubmit,
@@ -514,6 +518,7 @@ function UserFormDialog({
   title: string;
   initial?: FormValues;
   editMode?: boolean;
+  lockName?: boolean;
   canGrantSuperAdmin: boolean;
   saving: boolean;
   onSubmit: (v: FormValues) => Promise<void>;
@@ -579,6 +584,7 @@ function UserFormDialog({
               value={v.name}
               onChange={(e) => setV({ ...v, name: e.target.value })}
               className="mt-1.5"
+              disabled={lockName}
               placeholder={t("app.users.namePlaceholder")}
             />
           </div>
