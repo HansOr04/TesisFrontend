@@ -218,8 +218,7 @@ function AppShellInner() {
             </div>
             <div className="space-y-1">{tools.map(renderItem)}</div>
           </div>
-          {(auth.isActuallySuperAdmin ||
-            auth.currentRoles.includes("assessment_admin")) && (
+          {(auth.isActuallySuperAdmin || auth.canAdminister) && (
             <div>
               <div className="px-3 pb-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-white/35">
                 {t("app.shell.admin")}
@@ -229,9 +228,7 @@ function AppShellInner() {
                   .filter(
                     (i) =>
                       (!i.superAdminOnly || auth.isActuallySuperAdmin) &&
-                      (!i.adminOnly ||
-                        auth.isActuallySuperAdmin ||
-                        auth.currentRoles.includes("assessment_admin"))
+                      (!i.adminOnly || auth.canAdminister)
                   )
                   .map(renderItem)}
               </div>
@@ -256,7 +253,9 @@ function AppShellInner() {
                           ? t("app.users.roleAdmin")
                           : r === "assessment_evaluator"
                             ? t("app.users.roleEvaluator")
-                            : r
+                            : r === "assessment_viewer"
+                              ? t("app.users.roleViewer")
+                              : r
                       )
                       .join(", ")
                   : auth.isActuallySuperAdmin
@@ -368,6 +367,11 @@ function AppShellInner() {
         <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6 animate-fade-up">
           {/* Sin rol en el proyecto el servidor responde 403 a todo: en vez de
               pantallas vacías, se explica qué falta. */}
+          {auth.isReadOnly && (
+            <p className="mb-4 rounded-xl bg-[#7A3EB1]/8 px-4 py-2.5 text-sm text-[#5B2A86]">
+              {t("app.shell.readOnly")}
+            </p>
+          )}
           {auth.isActuallySuperAdmin || auth.currentRoles.length > 0 ? (
             <Outlet />
           ) : (

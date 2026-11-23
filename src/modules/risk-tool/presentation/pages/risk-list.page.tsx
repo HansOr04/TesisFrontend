@@ -362,7 +362,7 @@ export function RiskPanelGeneralPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        {row.evaluationId && (
+                        {row.evaluationId && !auth.isReadOnly && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -441,14 +441,16 @@ export function RiskPanelGeneralPage() {
         </Card>
       )}
 
-      <div className="flex justify-end">
-        <Button
-          size="lg"
-          onClick={() => void navigate({ to: "/assessments/new" })}
-        >
-          {t("app.assessment.profiles.newProfile")}
-        </Button>
-      </div>
+      {!auth.isReadOnly && (
+        <div className="flex justify-end">
+          <Button
+            size="lg"
+            onClick={() => void navigate({ to: "/assessments/new" })}
+          >
+            {t("app.assessment.profiles.newProfile")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

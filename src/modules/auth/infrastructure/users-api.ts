@@ -1,6 +1,15 @@
 import { genericGet, genericPostPutPatch } from "@/shared/api/http-client";
 
-export type AssessmentRoleCode = "assessment_admin" | "assessment_evaluator";
+export type AssessmentRoleCode =
+  | "assessment_admin"
+  | "assessment_evaluator"
+  | "assessment_viewer";
+
+/** Qué organizaciones evaluadas ve un visualizador. */
+export interface ViewerVisibility {
+  allProfiles: boolean;
+  profileIds: string[];
+}
 
 export interface OrganisationUser {
   id: string;
@@ -11,7 +20,13 @@ export interface OrganisationUser {
   hasPassword: boolean;
   oauthProvider: string | null;
   createdAt: string;
-  roles: { assignmentId: string; code: string; name: string }[];
+  roles: {
+    assignmentId: string;
+    code: string;
+    name: string;
+    /** Solo en el rol de visualizador. */
+    visibility?: ViewerVisibility;
+  }[];
 }
 
 export interface CreateUserInput {
@@ -67,5 +82,20 @@ export const removeOrganisationUser = (
     `/users/${id}`,
     "DELETE",
     undefined,
+    token
+  );
+
+/** Define qué organizaciones evaluadas ve un usuario con rol de visualizador. */
+export const setViewerVisibility = (
+  org: string,
+  id: string,
+  data: ViewerVisibility,
+  token?: string
+) =>
+  genericPostPutPatch<ViewerVisibility, OrganisationUser>(
+    org,
+    `/users/${id}/visibility`,
+    "PUT",
+    data,
     token
   );
