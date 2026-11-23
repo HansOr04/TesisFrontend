@@ -31,8 +31,13 @@ export interface AuthContextValue extends AuthState {
   reloadProjects: () => Promise<void>;
   /** Roles del usuario en la organización actual. */
   currentRoles: string[];
-  /** Administra el proyecto actual: assessment_admin o superadministrador. */
+  /**
+   * Administra el proyecto actual: assessment_admin, o el superadministrador
+   * que lo creó. Un superadministrador en un proyecto ajeno es un miembro más.
+   */
   canAdminister: boolean;
+  /** Visualizador: solo consulta, no puede crear ni calificar. */
+  isReadOnly: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -57,22 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     status: "loading",
     roles: [],
     isActuallySuperAdmin: false,
+    ownedProjects: [],
     sessionExpired: false,
   });
 
   const hydrate = useCallback(async (token: string) => {
     const me = await fetchMe(token);
     const memberOf = me.organisations.map((o) => o.organisation);
-    // El superadministrador administra todos los proyectos, no solo aquellos
-    // de los que es miembro: sin esto no podía entrar a uno que acababa de crear.
-    const allowed = me.isSuperAdmin
-      ? [
-          ...new Set([
-            ...memberOf,
-            ...(await fetchOrganisations(token)).map((o) => o.id),
-          ]),
-        ]
-      : memberOf;
+    const ownedProjects = me.isSuperAdmin
+      ? (await fetchOrganisations(token)).map((o) => o.id)
+      : [];
+    // El superadministrador entra a los proyectos que creó (la API solo le
+    // lista esos) además de aquellos de los que es miembro: sin esto no podía
+    // entrar a uno que acababa de crear.
+    const allowed = [...new Set([...memberOf, ...ownedProjects])];
     setState({
       status: "authenticated",
       currentUser: {
@@ -85,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       organisations: { allowed, current: pickOrganisation(allowed) },
       roles: me.organisations,
       isActuallySuperAdmin: me.isSuperAdmin,
+      ownedProjects,
       sessionExpired: false,
     });
   }, []);
@@ -114,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           status: "anonymous",
           roles: [],
           isActuallySuperAdmin: false,
+          ownedProjects: [],
           sessionExpired: false,
         });
       });
@@ -188,6 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       status: "anonymous",
       roles: [],
       isActuallySuperAdmin: false,
+      ownedProjects: [],
       sessionExpired: false,
     });
   }, [queryClient]);
@@ -211,6 +217,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const currentRoles =
       state.roles.find((r) => r.organisation === state.organisations?.current)
         ?.roles ?? [];
+    const canAdminister =
+      currentRoles.includes("assessment_admin") ||
+      (state.isActuallySuperAdmin &&
+        state.ownedProjects.includes(state.organisations?.current ?? ""));
     return {
       ...state,
       login,
@@ -220,8 +230,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setCurrentOrganisation,
       reloadProjects,
       currentRoles,
-      canAdminister:
-        state.isActuallySuperAdmin || currentRoles.includes("assessment_admin"),
+      canAdminister,
+      isReadOnly:
+        !canAdminister &&
+        !currentRoles.includes("assessment_evaluator") &&
+        currentRoles.includes("assessment_viewer"),
     };
   }, [
     state,

@@ -8,3 +8,8 @@ coverage/
 .DS_Store
 tsconfig.tsbuildinfo
 .tanstack/
+
+.stryker-tmp/
+reports/mutation/
+coverage/
+stryker.ci.json

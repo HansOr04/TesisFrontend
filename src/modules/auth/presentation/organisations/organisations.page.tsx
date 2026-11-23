@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Globe, Pencil, Plus, RefreshCw } from "lucide-react";
+import { Building2, Globe, Pencil, Plus, RefreshCw, Users } from "lucide-react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { organisationsQueries } from "@/modules/auth/application/organisations-queries";
 import {
@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { toast } from "@/shared/ui/use-toast";
+import { ProjectMembersDialog } from "./project-members-dialog";
 
 const SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])$/;
 
@@ -38,9 +39,10 @@ function slugify(name: string): string {
     .slice(0, 32);
 }
 
-// Alta y mantenimiento de organizaciones (inquilinos). Solo superadmin: una
-// organización nueva nace con sus tres plantillas y su administrador, así que
-// se puede usar de inmediato sin tocar la consola del servidor.
+// Alta y mantenimiento de proyectos (inquilinos). Solo superadmin, y cada uno
+// ve únicamente los proyectos que creó. Un proyecto nuevo nace con sus tres
+// plantillas y su administrador, y desde aquí mismo se le asignan usuarios
+// existentes o se crean nuevos.
 export function OrganisationsPage() {
   const auth = useAuth();
   const { t, tr } = useTranslation();
@@ -52,6 +54,7 @@ export function OrganisationsPage() {
 
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState<Organisation | null>(null);
+  const [membersOf, setMembersOf] = useState<Organisation | null>(null);
 
   const reprovision = useMutation({
     mutationFn: (id: string) => provisionOrganisation(id),
@@ -126,6 +129,16 @@ export function OrganisationsPage() {
               </tr>
             </thead>
             <tbody>
+              {organisations.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    {t("app.organisations.empty")}
+                  </td>
+                </tr>
+              )}
               {organisations.map((o) => (
                 <tr key={o.id} className="border-t">
                   <td className="px-6 py-4">
@@ -169,6 +182,14 @@ export function OrganisationsPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => setMembersOf(o)}
+                      >
+                        <Users className="h-4 w-4" />{" "}
+                        {t("app.organisations.members")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setEditing(o)}
                       >
                         <Pencil className="h-4 w-4" />{" "}
@@ -207,10 +228,19 @@ export function OrganisationsPage() {
       <OrganisationFormDialog
         open={showNew}
         onOpenChange={setShowNew}
-        onCreated={() => {
+        onCreated={(created) => {
           setShowNew(false);
           void organisationsQueries.invalidate(queryClient);
+          // Paso siguiente natural: armar el equipo del proyecto recién creado.
+          setMembersOf(created);
         }}
+      />
+      <ProjectMembersDialog
+        organisation={membersOf}
+        onOpenChange={(open) => {
+          if (!open) setMembersOf(null);
+        }}
+        onChanged={() => void organisationsQueries.invalidate(queryClient)}
       />
       <RenameDialog
         organisation={editing}
@@ -233,7 +263,7 @@ function OrganisationFormDialog({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onCreated: () => void;
+  onCreated: (organisation: Organisation) => void;
 }) {
   const { t } = useTranslation();
   const auth = useAuth();
@@ -267,7 +297,7 @@ function OrganisationFormDialog({
         variant: "success",
       });
       reset();
-      onCreated();
+      onCreated(result.organisation);
       // El proyecto nuevo aparece en el selector sin volver a entrar.
       void auth.reloadProjects();
     },

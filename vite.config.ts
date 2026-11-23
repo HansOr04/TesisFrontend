@@ -57,5 +57,18 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/test-setup.ts",
+        "src/routeTree.gen.ts",
+      ],
+      reporter: ["text-summary", "lcov", "json-summary"],
+      // Mínimos actuales: solo pueden subir. La cobertura de la web es baja
+      // (las páginas no tienen pruebas); subirlos a medida que se agreguen.
+      thresholds: { statements: 6, branches: 45, functions: 25, lines: 6 },
+    },
   },
 });

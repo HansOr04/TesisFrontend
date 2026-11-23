@@ -79,10 +79,12 @@ export function AssessmentProfilesPage() {
             {t("app.assessment.profiles.subtitle")}
           </p>
         </div>
-        <Button onClick={() => void navigate({ to: "/assessments/new" })}>
-          <Plus className="h-4 w-4 mr-1" />
-          {t("app.assessment.profiles.newProfile")}
-        </Button>
+        {!auth.isReadOnly && (
+          <Button onClick={() => void navigate({ to: "/assessments/new" })}>
+            <Plus className="h-4 w-4 mr-1" />
+            {t("app.assessment.profiles.newProfile")}
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -180,20 +182,22 @@ export function AssessmentProfilesPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-wrap items-center justify-end gap-1.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            title={t("app.assessment.wizard.edit")}
-                            onClick={() =>
-                              void navigate({
-                                to: "/assessments/$profileId/edit",
-                                params: { profileId: p.id },
-                              })
-                            }
-                          >
-                            <Pencil className="h-4 w-4" />
-                            {t("app.assessment.wizard.edit")}
-                          </Button>
+                          {!auth.isReadOnly && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title={t("app.assessment.wizard.edit")}
+                              onClick={() =>
+                                void navigate({
+                                  to: "/assessments/$profileId/edit",
+                                  params: { profileId: p.id },
+                                })
+                              }
+                            >
+                              <Pencil className="h-4 w-4" />
+                              {t("app.assessment.wizard.edit")}
+                            </Button>
+                          )}
                           {canAssignEvaluator && (
                             <Button
                               variant="outline"
@@ -209,17 +213,19 @@ export function AssessmentProfilesPage() {
                               )}
                             </Button>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            title={t(
-                              "app.assessment.profiles.applicabilityTitle"
-                            )}
-                            onClick={() => setApplicabilityProfile(p)}
-                          >
-                            <SlidersHorizontal className="h-4 w-4" />
-                            {t("app.assessment.profiles.applicabilityAction")}
-                          </Button>
+                          {!auth.isReadOnly && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              title={t(
+                                "app.assessment.profiles.applicabilityTitle"
+                              )}
+                              onClick={() => setApplicabilityProfile(p)}
+                            >
+                              <SlidersHorizontal className="h-4 w-4" />
+                              {t("app.assessment.profiles.applicabilityAction")}
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -305,20 +311,22 @@ export function AssessmentProfilesPage() {
                           </td>
                           <td className="py-2.5 px-4">
                             <div className="flex flex-wrap items-center justify-end gap-1.5">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                title={t("app.assessment.wizard.edit")}
-                                onClick={() =>
-                                  void navigate({
-                                    to: "/assessments/$profileId/edit",
-                                    params: { profileId: child.id },
-                                  })
-                                }
-                              >
-                                <Pencil className="h-4 w-4" />
-                                {t("app.assessment.wizard.edit")}
-                              </Button>
+                              {!auth.isReadOnly && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  title={t("app.assessment.wizard.edit")}
+                                  onClick={() =>
+                                    void navigate({
+                                      to: "/assessments/$profileId/edit",
+                                      params: { profileId: child.id },
+                                    })
+                                  }
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  {t("app.assessment.wizard.edit")}
+                                </Button>
+                              )}
                               {canAssignEvaluator && (
                                 <Button
                                   variant="outline"
@@ -334,19 +342,21 @@ export function AssessmentProfilesPage() {
                                   )}
                                 </Button>
                               )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                title={t(
-                                  "app.assessment.profiles.applicabilityTitle"
-                                )}
-                                onClick={() => setApplicabilityProfile(child)}
-                              >
-                                <SlidersHorizontal className="h-4 w-4" />
-                                {t(
-                                  "app.assessment.profiles.applicabilityAction"
-                                )}
-                              </Button>
+                              {!auth.isReadOnly && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  title={t(
+                                    "app.assessment.profiles.applicabilityTitle"
+                                  )}
+                                  onClick={() => setApplicabilityProfile(child)}
+                                >
+                                  <SlidersHorizontal className="h-4 w-4" />
+                                  {t(
+                                    "app.assessment.profiles.applicabilityAction"
+                                  )}
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"

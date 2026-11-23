@@ -1,0 +1,90 @@
+# Despliegue continuo de la aplicación web. Cuando el CI termina en verde
+# sobre main, Vercel publica ese commit (integración de GitHub). Este
+# workflow espera a que el despliegue de producción de ESE commit termine y
+# verifica la web publicada:
+#
+#   esperar despliegue ── página principal y recursos ── rutas de la aplicación
+#
+# Si Vercel falla o la web no carga, el workflow queda en rojo.
+name: Despliegue
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: despliegue-produccion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: read
+
+env:
+  WEB_URL: https://evaluar-ochre.vercel.app
+  VERCEL_ENVIRONMENT: Production
+  SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  esperar:
+    name: esperar despliegue en Vercel
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Vercel registra cada despliegue en GitHub (entorno «Production»).
+      - name: Despliegue del commit ${{ env.SHA }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 60); do
+            id=$(gh api "repos/$GITHUB_REPOSITORY/deployments?sha=$SHA&environment=$VERCEL_ENVIRONMENT&per_page=1" --jq '.[0].id // empty')
+            if [ -n "$id" ]; then
+              state=$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses?per_page=1" --jq '.[0].state // "pending"')
+              echo "Intento $i: despliegue $id → $state"
+              case "$state" in
+                success) echo "Vercel publicó ${SHA:0:7}."; exit 0 ;;
+                failure|error) echo "::error::Vercel no pudo publicar ${SHA:0:7} ($state)."; exit 1 ;;
+              esac
+            else
+              echo "Intento $i: Vercel aún no registra el despliegue"
+            fi
+            sleep 15
+          done
+          echo "::error::Vercel no terminó de publicar ${SHA:0:7} en 15 minutos"
+          exit 1
+
+  verificar:
+    name: verificar web en producción
+    needs: esperar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Página principal y recursos
+        run: |
+          html=$(curl -fsS --max-time 20 "$WEB_URL/")
+          echo "$html" | grep -q 'id="root"' || { echo "::error::La página principal no tiene la aplicación"; exit 1; }
+          for asset in $(echo "$html" | grep -oE '/assets/[A-Za-z0-9._-]+\.(js|css)' | sort -u); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$WEB_URL$asset")
+            echo "$asset → $code"
+            [ "$code" = 200 ] || { echo "::error::$asset respondió $code"; exit 1; }
+          done
+      # Las rutas internas las resuelve la aplicación (rewrite de vercel.json).
+      - name: Rutas de la aplicación
+        run: |
+          for path in /login /assessments /assessments/organizational; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$WEB_URL$path")
+            echo "$path → $code"
+            [ "$code" = 200 ] || { echo "::error::$path respondió $code"; exit 1; }
+          done
+      - name: Resumen
+        run: |
+          {
+            echo "### Producción verificada"
+            echo "- Commit: \`${SHA:0:7}\`"
+            echo "- Web: $WEB_URL"
+            echo "- Página, recursos y rutas: correctos"
+          } >> "$GITHUB_STEP_SUMMARY"
