@@ -1,6 +1,7 @@
-# Integración continua de la aplicación web (HU-61): cada pull request y cada
-# push a develop o main pasa por estilo, tipos, pruebas y compilación. La
-# protección de ramas exige que termine en verde antes de integrar (HU-62).
+# Integración continua de la aplicación web (HU-61). Estilo, tipos, pruebas y
+# compilación corren en paralelo, cada uno en su trabajo. El último trabajo
+# junta los resultados y es el que exige la protección de ramas (HU-62): si
+# cualquiera falla, se cancela o no corre, el pull request no se puede integrar.
 name: CI
 
 on:
@@ -8,40 +9,76 @@ on:
     branches: [develop, main]
   push:
     branches: [develop, main]
+  workflow_dispatch:
 
+# En un pull request, un push nuevo cancela la corrida anterior. En develop y
+# main no: cada fusión tiene que quedar verificada.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Estilo, tipos, pruebas y compilación
+  lint:
+    name: Estilo (ESLint)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/preparar
+      - run: npm run lint
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+  types:
+    name: Tipos (TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/preparar
+      - run: npm run typecheck
 
-      - name: Instalar dependencias
-        run: npm ci
+  test:
+    name: Pruebas (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/preparar
+      # El reporter de GitHub marca cada prueba que falla en el pull request.
+      - run: npm test -- --reporter=default --reporter=github-actions
 
-      - name: Estilo (ESLint)
-        run: npm run lint
+  # Compila con la misma orden que Vercel (tsc -b + vite build).
+  build:
+    name: Compilación
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/preparar
+      - run: npm run build
 
-      - name: Tipos (TypeScript)
-        run: npm run typecheck
-
-      - name: Pruebas (Vitest)
-        run: npm test
-
-      # Compila con la misma orden que Vercel (tsc -b + vite build).
-      - name: Compilación
-        run: npm run build
+  # Conserva el nombre del trabajo anterior porque es el que exige la
+  # protección de ramas de develop y main.
+  ci:
+    name: Estilo, tipos, pruebas y compilación
+    if: always()
+    needs: [lint, types, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resultado de cada verificación
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "### Resultado de la integración continua" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Verificación | Resultado |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "$RESULTS" | jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"' >> "$GITHUB_STEP_SUMMARY"
+          failed=$(echo "$RESULTS" | jq -r '[to_entries[] | select(.value.result != "success") | .key] | join(", ")')
+          if [ -n "$failed" ]; then
+            echo "::error::No pasaron: $failed"
+            exit 1
+          fi
+          echo "Todas las verificaciones pasaron."
