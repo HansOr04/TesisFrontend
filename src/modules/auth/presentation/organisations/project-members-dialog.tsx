@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Eye, Trash2, UserPlus, Users } from "lucide-react";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { usersQueries } from "@/modules/auth/application/users-queries";
 import {
@@ -38,6 +38,7 @@ import {
   useVisibilitySummary,
   viewerVisibilityOf,
 } from "../users/viewer-visibility-dialog";
+import { AssignableUserList } from "./assignable-user-list";
 
 type Mode = "existing" | "new";
 
@@ -104,7 +105,6 @@ export function ProjectMembersDialog({
   });
 
   const [mode, setMode] = useState<Mode>("existing");
-  const [search, setSearch] = useState("");
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [role, setRole] = useState<AssessmentRoleCode | "">(
     "assessment_evaluator"
@@ -119,7 +119,6 @@ export function ProjectMembersDialog({
   useEffect(() => {
     if (!open) return;
     setMode("existing");
-    setSearch("");
     setPickedId(null);
     setRole("assessment_evaluator");
     setDraft({ email: "", name: "", password: "" });
@@ -128,11 +127,7 @@ export function ProjectMembersDialog({
 
   const memberIds = new Set(members.map((m) => m.id));
   const candidates = (directoryQuery.data ?? []).filter(
-    (u) =>
-      !memberIds.has(u.id) &&
-      `${u.name ?? ""} ${u.email}`
-        .toLowerCase()
-        .includes(search.trim().toLowerCase())
+    (u) => !memberIds.has(u.id)
   );
   const picked = (directoryQuery.data ?? []).find((u) => u.id === pickedId);
 
@@ -253,53 +248,13 @@ export function ProjectMembersDialog({
 
             {mode === "existing" ? (
               <div className="mt-4">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder={t("app.organisations.membersSearch")}
-                    aria-label={t("app.organisations.membersSearch")}
-                  />
-                </div>
-                <div className="mt-2 max-h-48 space-y-1 overflow-y-auto rounded-xl border p-2">
-                  {directoryQuery.isLoading ? (
-                    <p className="py-4 text-center text-sm text-muted-foreground">
-                      {t("app.users.loading")}
-                    </p>
-                  ) : candidates.length === 0 ? (
-                    <p className="py-4 text-center text-sm text-muted-foreground">
-                      {t("app.organisations.membersNoCandidates")}
-                    </p>
-                  ) : (
-                    candidates.map((u) => (
-                      <label
-                        key={u.id}
-                        className={cn(
-                          "flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2",
-                          pickedId === u.id ? "bg-brand/8" : "hover:bg-muted/50"
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name="assignable-user"
-                          className="accent-[hsl(var(--brand))]"
-                          checked={pickedId === u.id}
-                          onChange={() => setPickedId(u.id)}
-                        />
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold">
-                            {u.name ?? u.email}
-                          </span>
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {u.email}
-                          </span>
-                        </span>
-                      </label>
-                    ))
-                  )}
-                </div>
+                <AssignableUserList
+                  name="assignable-user"
+                  users={candidates}
+                  loading={directoryQuery.isLoading}
+                  pickedId={pickedId}
+                  onPick={(u) => setPickedId(u.id)}
+                />
               </div>
             ) : (
               <div className="mt-4 grid gap-3 sm:grid-cols-3">

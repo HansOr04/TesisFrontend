@@ -5,6 +5,7 @@ import { useAuth } from "@/modules/auth/application/auth-context";
 import { organisationsQueries } from "@/modules/auth/application/organisations-queries";
 import {
   createOrganisation,
+  fetchAssignableUsers,
   provisionOrganisation,
   updateOrganisation,
   type CreateOrganisationInput,
@@ -25,6 +26,9 @@ import {
 } from "@/shared/ui/dialog";
 import { toast } from "@/shared/ui/use-toast";
 import { ProjectMembersDialog } from "./project-members-dialog";
+import { AssignableUserList } from "./assignable-user-list";
+
+type AdminMode = "me" | "existing" | "new";
 
 const SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])$/;
 
@@ -270,21 +274,55 @@ function OrganisationFormDialog({
   const [v, setV] = useState<CreateOrganisationInput>({ id: "", name: "" });
   const [idTouched, setIdTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminMode, setAdminMode] = useState<AdminMode>("me");
+  const [adminPicked, setAdminPicked] = useState<{
+    id: string;
+    email: string;
+  } | null>(null);
+
+  const directoryQuery = useQuery({
+    queryKey: ["assignable-users"],
+    queryFn: () => fetchAssignableUsers(),
+    enabled: open && adminMode === "existing",
+    staleTime: 30 * 1000,
+  });
+  // Uno mismo ya es la opción «Yo».
+  const directory = (directoryQuery.data ?? []).filter(
+    (u) => u.id !== auth.currentUser?.id
+  );
 
   const reset = () => {
     setV({ id: "", name: "" });
     setIdTouched(false);
     setError(null);
+    setAdminMode("me");
+    setAdminPicked(null);
+  };
+
+  const idValue = idTouched ? v.id : slugify(v.name);
+
+  // Solo se envían los datos del modo elegido: una cuenta existente conserva
+  // su nombre y su contraseña.
+  const adminInput = (): Pick<
+    CreateOrganisationInput,
+    "adminEmail" | "adminName" | "adminPassword"
+  > => {
+    if (adminMode === "existing") return { adminEmail: adminPicked?.email };
+    if (adminMode === "new")
+      return {
+        adminEmail: v.adminEmail?.trim() || undefined,
+        adminName: v.adminName?.trim() || undefined,
+        adminPassword: v.adminPassword || undefined,
+      };
+    return {};
   };
 
   const create = useMutation({
     mutationFn: () =>
       createOrganisation({
-        id: v.id.trim(),
+        id: idValue.trim(),
         name: v.name.trim(),
-        adminEmail: v.adminEmail?.trim() || undefined,
-        adminName: v.adminName?.trim() || undefined,
-        adminPassword: v.adminPassword || undefined,
+        ...adminInput(),
       }),
     onSuccess: (result) => {
       toast({
@@ -305,9 +343,17 @@ function OrganisationFormDialog({
       setError(err instanceof Error ? err.message : t("app.common.error")),
   });
 
-  const idValue = idTouched ? v.id : slugify(v.name);
+  const adminValid =
+    adminMode === "me" ||
+    (adminMode === "existing" && adminPicked !== null) ||
+    (adminMode === "new" &&
+      /^\S+@\S+\.\S+$/.test(v.adminEmail?.trim() ?? "") &&
+      (v.adminPassword?.length ?? 0) >= 8);
   const valid =
-    v.name.trim().length >= 2 && idValue.length >= 3 && SLUG.test(idValue);
+    v.name.trim().length >= 2 &&
+    idValue.length >= 3 &&
+    SLUG.test(idValue) &&
+    adminValid;
   const lbl = "text-xs font-bold uppercase tracking-wide text-muted-foreground";
 
   return (
@@ -318,7 +364,7 @@ function OrganisationFormDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold">
             {t("app.organisations.new")}
@@ -365,54 +411,103 @@ function OrganisationFormDialog({
             <p className="text-sm font-bold">
               {t("app.organisations.adminTitle")}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t("app.organisations.adminHelp", {
-                email: auth.currentUser?.email ?? "",
-              })}
-            </p>
-            <div className="mt-3 space-y-3">
-              <div>
-                <Label className={lbl} htmlFor="org-admin-email">
-                  {t("app.organisations.adminEmail")}
-                </Label>
-                <Input
-                  id="org-admin-email"
-                  type="email"
-                  className="mt-1.5"
-                  value={v.adminEmail ?? ""}
-                  onChange={(e) => setV({ ...v, adminEmail: e.target.value })}
-                  placeholder={auth.currentUser?.email ?? ""}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(["me", "existing", "new"] as const).map((m) => (
+                <Button
+                  key={m}
+                  type="button"
+                  size="sm"
+                  variant={adminMode === m ? "default" : "outline"}
+                  onClick={() => {
+                    setAdminMode(m);
+                    setError(null);
+                  }}
+                >
+                  {t(
+                    m === "me"
+                      ? "app.organisations.adminMe"
+                      : m === "existing"
+                        ? "app.organisations.membersExisting"
+                        : "app.organisations.membersNew"
+                  )}
+                </Button>
+              ))}
+            </div>
+
+            {adminMode === "me" && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                {t("app.organisations.adminMeHelp", {
+                  email: auth.currentUser?.email ?? "",
+                })}
+              </p>
+            )}
+
+            {adminMode === "existing" && (
+              <div className="mt-3">
+                <p className="mb-2 text-xs text-muted-foreground">
+                  {t("app.organisations.adminExistingHelp")}
+                </p>
+                <AssignableUserList
+                  name="project-admin"
+                  users={directory}
+                  loading={directoryQuery.isLoading}
+                  pickedId={adminPicked?.id ?? null}
+                  onPick={(u) => setAdminPicked({ id: u.id, email: u.email })}
                 />
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+            )}
+
+            {adminMode === "new" && (
+              <div className="mt-3 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  {t("app.organisations.adminNewHelp")}
+                </p>
                 <div>
-                  <Label className={lbl} htmlFor="org-admin-name">
-                    {t("app.organisations.adminName")}
+                  <Label className={lbl} htmlFor="org-admin-email">
+                    {t("app.organisations.adminEmail")}
                   </Label>
                   <Input
-                    id="org-admin-name"
+                    id="org-admin-email"
+                    type="email"
                     className="mt-1.5"
-                    value={v.adminName ?? ""}
-                    onChange={(e) => setV({ ...v, adminName: e.target.value })}
+                    value={v.adminEmail ?? ""}
+                    onChange={(e) => setV({ ...v, adminEmail: e.target.value })}
+                    placeholder={t("app.users.emailPlaceholder")}
                   />
                 </div>
-                <div>
-                  <Label className={lbl} htmlFor="org-admin-password">
-                    {t("app.organisations.adminPassword")}
-                  </Label>
-                  <Input
-                    id="org-admin-password"
-                    type="password"
-                    className="mt-1.5"
-                    value={v.adminPassword ?? ""}
-                    onChange={(e) =>
-                      setV({ ...v, adminPassword: e.target.value })
-                    }
-                    placeholder={t("app.organisations.adminPasswordHint")}
-                  />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label className={lbl} htmlFor="org-admin-name">
+                      {t("app.organisations.adminName")}
+                    </Label>
+                    <Input
+                      id="org-admin-name"
+                      className="mt-1.5"
+                      value={v.adminName ?? ""}
+                      onChange={(e) =>
+                        setV({ ...v, adminName: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label className={lbl} htmlFor="org-admin-password">
+                      {t("app.organisations.adminPassword")}
+                    </Label>
+                    <Input
+                      id="org-admin-password"
+                      type="password"
+                      autoComplete="new-password"
+                      className="mt-1.5"
+                      value={v.adminPassword ?? ""}
+                      onChange={(e) =>
+                        setV({ ...v, adminPassword: e.target.value })
+                      }
+                      placeholder={t("app.organisations.adminPasswordHint")}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {error && (
@@ -428,7 +523,6 @@ function OrganisationFormDialog({
           <Button
             onClick={() => {
               setError(null);
-              if (!idTouched) setV((prev) => ({ ...prev, id: idValue }));
               create.mutate();
             }}
             disabled={!valid || create.isPending}
