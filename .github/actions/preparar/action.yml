@@ -1,0 +1,13 @@
+# Paso común de todos los trabajos: Node con caché de npm y dependencias.
+name: Preparar Node y dependencias
+description: Node 22 con caché de npm y npm ci
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version: 22
+        cache: npm
+    - name: Instalar dependencias
+      shell: bash
+      run: npm ci --no-audit --no-fund

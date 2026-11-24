@@ -36,7 +36,10 @@ export const AssignEvaluatorDialog: FC<{
   const { t } = useTranslation();
   const auth = useAuth();
   const token = auth.currentUser?.accessToken;
-  const isActuallySuperAdmin = auth.isActuallySuperAdmin;
+  // El dato «confidencial» solo lo cambia el superadministrador dueño del proyecto.
+  const isActuallySuperAdmin = auth.ownedProjects.includes(
+    auth.organisations?.current ?? ""
+  );
 
   const evaluatorsQuery = useQuery({
     ...assessmentRoleAssignmentsQueryOptions(organisation, token),

@@ -74,3 +74,20 @@ export const provisionOrganisation = (id: string, token?: string) =>
     undefined,
     token
   );
+
+/** Usuario ya creado en la plataforma, para asignarlo a un proyecto. */
+export interface AssignableUser {
+  id: string;
+  email: string;
+  name: string | null;
+  isSuperAdmin: boolean;
+}
+
+export const fetchAssignableUsers = (search?: string, token?: string) =>
+  genericSingleFetchWithoutOrganisation<AssignableUser[]>(
+    `/organisations/assignable-users${
+      search ? `?search=${encodeURIComponent(search)}` : ""
+    }`,
+    "",
+    token
+  );
