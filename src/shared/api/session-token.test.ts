@@ -4,7 +4,6 @@ import { resolveAuthBase } from "./auth-base";
 const respond = (accessToken: string | null, status = 200) =>
   new Response(JSON.stringify({ accessToken }), { status });
 
-/** Cada carga del módulo hace de una pestaña distinta. */
 async function openTab() {
   vi.resetModules();
   return import("./session-token");

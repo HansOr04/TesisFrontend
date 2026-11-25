@@ -1,11 +1,3 @@
-# Despliegue continuo de la aplicación web. Cuando el CI termina en verde
-# sobre main, Vercel publica ese commit (integración de GitHub). Este
-# workflow espera a que el despliegue de producción de ESE commit termine y
-# verifica la web publicada:
-#
-#   esperar despliegue ── página principal y recursos ── rutas ── sesión
-#
-# Si Vercel falla o la web no carga, el workflow queda en rojo.
 name: Despliegue
 
 on:
@@ -35,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # Vercel registra cada despliegue en GitHub (entorno «Production»).
       - name: Despliegue del commit ${{ env.SHA }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -72,7 +63,6 @@ jobs:
             echo "$asset → $code"
             [ "$code" = 200 ] || { echo "::error::$asset respondió $code"; exit 1; }
           done
-      # Las rutas internas las resuelve la aplicación (rewrite de vercel.json).
       - name: Rutas de la aplicación
         run: |
           for path in /login /assessments /assessments/organizational; do
@@ -80,8 +70,6 @@ jobs:
             echo "$path → $code"
             [ "$code" = 200 ] || { echo "::error::$path respondió $code"; exit 1; }
           done
-      # La sesión pasa por el dominio de la web (cookie propia, HU-71): sin
-      # cookie, la API responde una sesión anónima y no la página de la web.
       - name: Sesión por el dominio de la web
         run: |
           body=$(curl -fsS --max-time 20 -X POST "$WEB_URL/auth/refresh")

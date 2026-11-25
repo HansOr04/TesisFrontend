@@ -37,8 +37,6 @@ const renderDialog = (s: MeasureSolution, onSave = vi.fn()) =>
     />
   );
 
-// Seguimiento de una medida (RF-06): pasar a 100 % es concluirla, y una
-// medida concluida tiene que decir qué se implementó.
 describe("MeasureProgressDialog, concluding a measure", () => {
   it("does not let a measure be concluded without describing what was implemented", () => {
     const onSave = vi.fn();

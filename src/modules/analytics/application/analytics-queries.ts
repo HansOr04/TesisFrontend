@@ -10,8 +10,6 @@ import {
   type SegmentKey,
 } from "../infrastructure/analytics-api";
 
-// La analítica es cara de calcular y cambia solo al completar evaluaciones:
-// se cachea 5 minutos por pestaña/parámetros.
 const STALE = 5 * 60 * 1000;
 const key = (org: string | undefined, ...rest: unknown[]) =>
   ["analytics", org ?? "", ...rest] as const;

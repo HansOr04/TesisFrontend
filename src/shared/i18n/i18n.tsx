@@ -15,12 +15,7 @@ const DICTS: Record<Locale, Record<string, string>> = { es, en };
 const STORAGE_KEY = "assessment.locale";
 
 export type TranslateParams = Record<string, string | number>;
-/** Traduce una clave; `{{nombre}}` se sustituye con `params`. */
 export type Translate = (key: string, params?: TranslateParams) => string;
-/**
- * Igual que `t` pero devuelve nodos React: `**texto**` se convierte en
- * <b>texto</b>, para prosa con énfasis (explicaciones de la analítica).
- */
 export type TranslateRich = (
   key: string,
   params?: TranslateParams
@@ -40,7 +35,6 @@ function interpolate(text: string, params?: TranslateParams): string {
   );
 }
 
-/** Convierte `**negrita**` en <b> manteniendo el resto como texto. */
 export function richText(text: string): ReactNode {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
   if (parts.length === 1) return text;
@@ -55,9 +49,7 @@ function readStoredLocale(): Locale {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "en" || stored === "es") return stored;
-  } catch {
-    /* sin localStorage (SSR/tests) */
-  }
+  } catch {}
   return "es";
 }
 
@@ -67,12 +59,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     setLocaleState(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }, []);
-  // Misma semántica que el origen: si falta la clave, se muestra el último
-  // segmento (p.ej. "app.x.saveButton" → "saveButton") en vez de romper la UI.
   const t = useCallback<Translate>(
     (key, params) =>
       interpolate(

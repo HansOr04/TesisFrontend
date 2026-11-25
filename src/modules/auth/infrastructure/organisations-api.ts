@@ -3,7 +3,6 @@ import {
   genericSingleFetchWithoutOrganisation,
 } from "@/shared/api/http-client";
 
-/** Organización (inquilino) con el volumen de datos que contiene. */
 export interface Organisation {
   id: string;
   name: string;
@@ -63,7 +62,6 @@ export const updateOrganisation = (
     token
   );
 
-/** Reaplica las plantillas base sobre una organización existente. */
 export const provisionOrganisation = (id: string, token?: string) =>
   genericMutateWithoutOrganisation<
     undefined,
@@ -75,7 +73,6 @@ export const provisionOrganisation = (id: string, token?: string) =>
     token
   );
 
-/** Usuario ya creado en la plataforma, para asignarlo a un proyecto. */
 export interface AssignableUser {
   id: string;
   email: string;

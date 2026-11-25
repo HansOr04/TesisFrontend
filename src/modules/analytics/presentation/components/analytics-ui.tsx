@@ -8,10 +8,6 @@ import type {
   CorrelationStrength,
 } from "../../infrastructure/analytics-api";
 
-/**
- * Etiquetas traducidas de herramientas y fuerzas de correlación. Las páginas
- * de analítica las obtienen con `useAnalyticsLabels()`.
- */
 export function useAnalyticsLabels() {
   const { t } = useTranslation();
   return useMemo(
@@ -35,7 +31,6 @@ export const TOOL_COLOR: Record<AnalyticsTool, string> = {
 };
 export const TOOLS: AnalyticsTool[] = ["ORGANIZATIONAL", "CAPACITY", "RISK"];
 
-/** Color de celda para mapas de calor 0–10 (rojo → ámbar → verde). */
 export function heatColor(value: number | null): string {
   if (value === null || Number.isNaN(value)) return SCORE_COLORS.track;
   return scoreColor(value);
@@ -55,7 +50,6 @@ export function heatAlpha(value: number | null): string {
     .padStart(2, "0")}`;
 }
 
-/** Color para correlaciones −1..1 (azul negativo, verde positivo). */
 export function corrColor(r: number | null): string {
   if (r === null) return "transparent";
   const a = Math.min(1, Math.abs(r));
@@ -101,7 +95,6 @@ export function StatTile({
   );
 }
 
-/** Hallazgo en lenguaje natural derivado de los datos (para la memoria). */
 export function Insight({
   children,
   tone = "brand",

@@ -74,17 +74,10 @@ function fmtDate(value: string) {
   return new Date(value).toLocaleDateString("es-EC", DATE_FORMAT);
 }
 
-/** Inicio y fin de una medida: días de calendario, sin zona horaria. */
 function fmtDay(value: string) {
   return formatDateOnly(value, "es-EC", DATE_FORMAT);
 }
 
-/**
- * Plan de acción consolidado de una organización (pedido en el piloto, HU-57):
- * las medidas de las tres herramientas en una sola vista, agrupadas por
- * herramienta y por evaluación. Es de consulta; cada grupo enlaza al plan de
- * su herramienta, que es donde se registra el avance.
- */
 export function ProfileActionPlanPage() {
   const { profileId } = useParams({
     from: routeKeys.assessmentProfileActionPlan,
@@ -114,8 +107,6 @@ export function ProfileActionPlanPage() {
         measures.length /
         10;
 
-  // Por herramienta, y dentro de ella por evaluación (de la más reciente a la
-  // más antigua): el backend ya entrega ese orden.
   const groups = useMemo(
     () =>
       TOOLS.map((def) => {

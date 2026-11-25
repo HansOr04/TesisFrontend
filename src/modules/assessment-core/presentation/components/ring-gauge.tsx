@@ -1,15 +1,12 @@
 import { SCORE_COLORS } from "@/shared/design/score-colors";
 import { gaugeColor } from "./gauge";
 
-// Anillo de progreso circular (0–10). Con `label` muestra el texto debajo;
-// en tamaños pequeños (tarjetas de KPI) se usa sin etiqueta y con trazo fino.
 interface RingGaugeProps {
-  value: number; // 0-10
+  value: number;
   label?: string;
   size?: number;
   strokeWidth?: number;
   color?: string;
-  /** Muestra el valor como entero (p.ej. "4") en vez de "4.0". */
   integer?: boolean;
 }
 

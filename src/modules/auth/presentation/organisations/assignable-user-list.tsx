@@ -5,10 +5,6 @@ import { useTranslation } from "@/shared/i18n/i18n";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
 
-/**
- * Buscador y lista de cuentas existentes para elegir una. Lo usan el equipo
- * del proyecto (asignar usuario) y el alta de proyecto (elegir administrador).
- */
 export function AssignableUserList({
   users,
   loading,
@@ -20,7 +16,6 @@ export function AssignableUserList({
   loading: boolean;
   pickedId: string | null;
   onPick: (user: AssignableUser) => void;
-  /** Nombre del grupo de radios; distinto por formulario. */
   name: string;
 }) {
   const { t } = useTranslation();

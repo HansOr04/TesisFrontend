@@ -199,7 +199,6 @@ export type ClusterLevel = "HIGH" | "MEDIUM" | "INTERVENTION";
 
 export interface ClusterEntry {
   index: number;
-  /** Código estable de la tipología; `label` es su texto en español. */
   level: ClusterLevel;
   label: string;
   size: number;

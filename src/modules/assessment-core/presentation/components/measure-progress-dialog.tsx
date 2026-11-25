@@ -35,11 +35,9 @@ import { formatDateOnly } from "@/shared/lib/date-only";
 export interface MeasureProblem {
   code: string;
   name: string;
-  /** Calificación del KPI (1–10). */
   score?: number;
   observation?: string;
   sectionLabel?: string;
-  /** Solo herramienta de riesgos. */
   riskDescription?: string;
   riskType?: string;
   riskClass?: string;
@@ -108,10 +106,6 @@ const STATUS_STYLE: Record<
   },
 };
 
-// Ventana de seguimiento de una medida: recorre el flujo Problema detectado →
-// Solución propuesta → Registrar avance (con resultado esperado y mejoras
-// aplicadas). La usan los planes de acción (Organizativa/Capacidades) y el
-// plan de mitigación (Riesgos).
 export function MeasureProgressDialog({
   open,
   onOpenChange,
@@ -143,9 +137,6 @@ export function MeasureProgressDialog({
   const status = useMemo(() => deriveStatus(progress), [progress]);
   const style = STATUS_STYLE[status];
   const changed = solution ? progress !== solution.progressPct : false;
-  // Concluir una medida es afirmar que el riesgo o la brecha se atendió: se
-  // exige dejar escrito qué se implementó, que es lo que muestran el tablero
-  // y el reporte de una medida concluida.
   const missingImplemented =
     status === "DONE" && appliedImprovements.trim().length === 0;
   const evidenceUrl = webUrl(link);
@@ -193,7 +184,6 @@ export function MeasureProgressDialog({
             </DialogHeader>
 
             <div className="grid max-h-[70vh] grid-cols-1 overflow-y-auto md:grid-cols-[1.05fr_1fr]">
-              {/* ── Columna izquierda: problema y solución ── */}
               <div className="space-y-5 border-b p-6 md:border-b-0 md:border-r">
                 <section>
                   <header className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-danger">
@@ -333,7 +323,6 @@ export function MeasureProgressDialog({
                 </section>
               </div>
 
-              {/* ── Columna derecha: avance ── */}
               <div className="space-y-5 p-6">
                 <header className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-success">
                   <TrendingUp className="h-3.5 w-3.5" />{" "}

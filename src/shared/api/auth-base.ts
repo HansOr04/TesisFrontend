@@ -1,10 +1,3 @@
-/**
- * Base de las rutas /auth que usan la cookie de sesión. En Vercel la web las
- * pide a su propio dominio (vercel.json las reenvía a Heroku): así la cookie
- * es propia y los navegadores que bloquean las de terceros (Safari, Firefox
- * estricto, Brave) no cierran la sesión (HU-71). El resto de la API sigue
- * yendo directo al servidor.
- */
 export function resolveAuthBase(
   apiUrl: string | undefined,
   sameOrigin: string | undefined

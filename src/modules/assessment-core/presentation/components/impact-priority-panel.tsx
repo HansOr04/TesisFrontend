@@ -19,7 +19,6 @@ export interface ImpactPriorityDisplayItem {
 interface ImpactPriorityPanelProps {
   items: ImpactPriorityDisplayItem[];
   t: (key: string) => string;
-  /** Abre el plan para crear la medida de este KPI. */
   onPlanMeasure?: (item: ImpactPriorityDisplayItem) => void;
 }
 
@@ -34,9 +33,6 @@ const PODIUM_STYLE = [
   { ring: "ring-[#C67B3C]/50", badge: "bg-[#C67B3C] text-white", label: "3" },
 ];
 
-// Ranking de KPI críticos por impacto (peso × brecha bajo el umbral): podio
-// con los 3 primeros, barras relativas al máximo, filtro por sección y lista
-// colapsable para no abrumar cuando hay decenas de KPI.
 export function ImpactPriorityPanel({
   items,
   t,

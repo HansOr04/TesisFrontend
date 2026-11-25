@@ -3,9 +3,6 @@ import { authorizedFetch } from "./session-token";
 
 export { authorizedFetch, sessionToken } from "./session-token";
 
-// Cliente HTTP mínimo. Toda la app habla con el backend a través de estas
-// funciones: una sola forma de construir URLs, cabeceras y errores. El token
-// de acceso vive en memoria (session-token.ts) y se renueva solo ante un 401.
 const configured = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
 export const baseURL =
   configured && configured.length > 0 ? configured : "/api";
@@ -51,7 +48,6 @@ function requireOrganisation(organisation: string, where: string) {
   }
 }
 
-/** GET /:org/<path> */
 export const genericGet = async <T>(
   organisation: string,
   path: string,
@@ -67,7 +63,6 @@ export const genericGet = async <T>(
   return (await response.json()) as T;
 };
 
-/** GET /:org/<controller>/<id> */
 export const genericSingleFetch = async <T>(
   organisation: string,
   controller: string,
@@ -84,7 +79,6 @@ export const genericSingleFetch = async <T>(
   );
 };
 
-/** GET <controller>/<id> sin prefijo de organización (rutas globales). */
 export const genericSingleFetchWithoutOrganisation = async <T>(
   controller: string,
   id = "",
@@ -99,7 +93,6 @@ export const genericSingleFetchWithoutOrganisation = async <T>(
   return (await response.json()) as T;
 };
 
-/** POST/PUT/PATCH/DELETE sin prefijo de organización (rutas globales). */
 export const genericMutateWithoutOrganisation = async <T, R = T>(
   controller: string,
   methodType: "POST" | "PUT" | "PATCH" | "DELETE",
@@ -121,7 +114,6 @@ export const genericMutateWithoutOrganisation = async <T, R = T>(
   return (text ? JSON.parse(text) : null) as R;
 };
 
-/** POST/PUT/PATCH/DELETE /:org/<controller> con cuerpo JSON. */
 export const genericPostPutPatch = async <T, R = T>(
   organisation: string,
   controller: string,
@@ -145,7 +137,6 @@ export const genericPostPutPatch = async <T, R = T>(
   return (text ? JSON.parse(text) : null) as R;
 };
 
-/** Descarga un blob de respuesta como archivo en el navegador. */
 export async function downloadBlobResponse(
   response: Response,
   filename: string
@@ -161,7 +152,6 @@ export async function downloadBlobResponse(
   URL.revokeObjectURL(url);
 }
 
-/** Descargas (Excel/PPTX): devuelve la Response para leer el blob. */
 export const genericFetchForBlob = async (
   organisation: string,
   controller: string,

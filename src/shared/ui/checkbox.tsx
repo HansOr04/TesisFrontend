@@ -8,8 +8,6 @@ const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ className, checked, ...props }, ref) => {
-  // Radix treats checked="indeterminate" with a setState-in-ref that can
-  // infinite-loop (React #185) when the checkbox remounts during table load.
   const isIndeterminate = checked === "indeterminate";
   return (
     <CheckboxPrimitive.Root

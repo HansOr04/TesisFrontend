@@ -49,9 +49,6 @@ export interface ApplicabilityEditorProps {
   }) => void;
 }
 
-// Editor de KPI aplicables por organización: carga la plantilla activa de
-// cada herramienta y permite marcar secciones enteras o KPI individuales
-// como "no aplica". Controlado: el padre guarda los sets de exclusión.
 export function ApplicabilityEditor({
   excludedSectionIds,
   excludedIndicatorIds,
@@ -64,7 +61,6 @@ export function ApplicabilityEditor({
     ApplicabilityToolKey,
     AssessmentTemplateData | null
   > | null>(null);
-  // `t` se usa como variable de iteración en este archivo: la traducción es `tr`.
   const { t: tr } = useTranslation();
   const [tool, setTool] = useState<ApplicabilityToolKey>("organizational");
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
@@ -316,9 +312,6 @@ export function ApplicabilityEditor({
                               <span className={cn(excluded && "line-through")}>
                                 {indicator.name}
                               </span>
-                              {/* Un KPI desactivado en la plantilla sigue en la
-                                  lista para poder verlo y decidir, pero se marca
-                                  porque no cuenta en las evaluaciones nuevas. */}
                               {!indicator.active && (
                                 <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                   {tr("app.assessment.admin.inactive")}

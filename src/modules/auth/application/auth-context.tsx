@@ -24,19 +24,11 @@ export interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   loginGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
-  /** Reanuda la sesión caducada sin salir de la pantalla en la que se está. */
   resumeSession: (password: string) => Promise<void>;
   setCurrentOrganisation: (organisation: string) => void;
-  /** Vuelve a leer los proyectos (p. ej. después de crear uno). */
   reloadProjects: () => Promise<void>;
-  /** Roles del usuario en la organización actual. */
   currentRoles: string[];
-  /**
-   * Administra el proyecto actual: assessment_admin, o el superadministrador
-   * que lo creó. Un superadministrador en un proyecto ajeno es un miembro más.
-   */
   canAdminister: boolean;
-  /** Visualizador: solo consulta, no puede crear ni calificar. */
   isReadOnly: boolean;
 }
 
@@ -46,16 +38,10 @@ function pickOrganisation(allowed: string[]): string {
   try {
     const stored = localStorage.getItem(ORG_KEY);
     if (stored && allowed.includes(stored)) return stored;
-  } catch {
-    /* ignore */
-  }
+  } catch {}
   return allowed[0] ?? "";
 }
 
-// Fuente única de verdad de la sesión: token de acceso corto en memoria
-// (renovado con la cookie HttpOnly de refresh) + perfil (/auth/me). Expone la
-// misma forma que usan las páginas (currentUser.accessToken,
-// organisations.current, isActuallySuperAdmin).
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const [state, setState] = useState<AuthState>({
@@ -72,9 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const ownedProjects = me.isSuperAdmin
       ? (await fetchOrganisations(token)).map((o) => o.id)
       : [];
-    // El superadministrador entra a los proyectos que creó (la API solo le
-    // lista esos) además de aquellos de los que es miembro: sin esto no podía
-    // entrar a uno que acababa de crear.
     const allowed = [...new Set([...memberOf, ...ownedProjects])];
     setState({
       status: "authenticated",
@@ -93,15 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Al cargar: intenta renovar con la cookie; sin cookie → anónimo.
   useEffect(() => {
     let cancelled = false;
     try {
-      // Versiones anteriores guardaban el JWT en localStorage.
       localStorage.removeItem("assessment.accessToken");
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     refreshAccessToken()
       .then((token) => {
         if (cancelled) return;
@@ -127,16 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [hydrate]);
 
-  // Cada renovación silenciosa actualiza el token que ven las páginas (y el
-  // socket de tiempo real); si la renovación falla, la sesión se cierra.
   useEffect(
     () =>
       sessionToken.subscribe((token) => {
         setState((s) => {
           if (s.status !== "authenticated" || !s.currentUser) return s;
-          // Antes se cerraba la sesión aquí mismo. Eso desmontaba la
-          // aplicación y se perdía lo que hubiera en pantalla sin guardar;
-          // ahora solo se marca como caducada y el diálogo pide la clave.
           if (!token) return { ...s, sessionExpired: true };
           return {
             ...s,
@@ -148,9 +122,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // Las consultas se guardan por proyecto, no por usuario: sin vaciarlas, quien
-  // entra después en el mismo navegador (un equipo compartido en el taller)
-  // veía las organizaciones del usuario anterior hasta recargar la página.
   const applySession = useCallback(
     async (session: AuthSession) => {
       queryClient.clear();
@@ -171,8 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applySession]
   );
 
-  // Reanudar no es volver a entrar: se conserva la organización actual y se
-  // refrescan las consultas que hayan fallado mientras la sesión estaba caída.
   const resumeSession = useCallback(
     async (password: string) => {
       const email = state.currentUser?.email;
@@ -207,7 +176,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
-  // El proyecto actual se conserva: hydrate lo recupera de localStorage.
   const reloadProjects = useCallback(async () => {
     const token = sessionToken.get();
     if (token) await hydrate(token);

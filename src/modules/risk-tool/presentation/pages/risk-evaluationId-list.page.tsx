@@ -77,8 +77,6 @@ export function RiskEvaluationDetailPage() {
   const [improvingIndicatorId, setImprovingIndicatorId] = useState<
     string | null
   >(null);
-  // Una evaluación completada tiene sus puntajes congelados (el servidor
-  // rechaza cambios): se abre para consultar lo que se calificó ese día.
   const readOnly = evaluation?.status === "COMPLETED";
 
   const loadEvaluation = useCallback(
@@ -92,9 +90,6 @@ export function RiskEvaluationDetailPage() {
           fetchRiskRisks(org, evaluationId, refreshedToken),
         ]);
         setEvaluation(data);
-        // La descripción/tipo de riesgo vive en AssessmentRisk, no en AssessmentResponse —
-        // se precarga desde el riesgo ya guardado (si existe) para que reabrir
-        // el borrador no exija volver a escribirla en cada KPI ya respondido.
         const riskByIndicator = Object.fromEntries(
           risks.map((r) => [r.indicatorId, r])
         );
@@ -110,15 +105,11 @@ export function RiskEvaluationDetailPage() {
           };
         }
         if (data.status === "COMPLETED") {
-          // Completada: se muestra exactamente lo que guardó el servidor. Un
-          // borrador local ya no se podría guardar, así que se descarta.
           clearDraft(draftKey);
           setDraft(initialDraft);
           setSavedDraft(initialDraft);
           return;
         }
-        // Si la sesión se cerró por accidente con cambios sin guardar, se
-        // recuperan por encima de lo que ya confirmó el servidor.
         const restored = loadDraft<Record<string, DraftResponseRisk>>(
           draftKey
         );
@@ -156,7 +147,6 @@ export function RiskEvaluationDetailPage() {
     void loadEvaluation();
   }, [loadEvaluation]);
 
-  // Persiste el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
   useEffect(() => {
     if (readOnly || Object.keys(draft).length === 0) return;
     saveDraft(draftKey, draft);
@@ -184,9 +174,6 @@ export function RiskEvaluationDetailPage() {
     [draft, savedDraft]
   );
 
-  // FE7-B01: sesión colaborativa — si otro facilitador califica un KPI de
-  // esta misma evaluación, la recargamos en vivo. Si el usuario actual tiene
-  // cambios locales sin guardar, no la pisamos: solo avisamos.
   const handleRemoteScoreUpdate = useCallback(() => {
     if (hasUnsavedChanges) {
       toast({
@@ -205,9 +192,6 @@ export function RiskEvaluationDetailPage() {
     auth.currentUser?.id
   );
 
-  // RNF-03: reintenta lo que quedó pendiente en la cola local (por ejemplo,
-  // de una sesión anterior sin red) apenas monta y cada vez que vuelve la
-  // conexión — nunca se pierde una calificación por caída de red.
   const flushQueue = useCallback(async () => {
     if (!org || !token) return;
     const result = await flushAssessmentQueue<AssessmentKpiResponseRiskInput[]>(
@@ -395,11 +379,6 @@ export function RiskEvaluationDetailPage() {
     void savePrinciple(principleIndex);
   }, [savePrinciple, principleIndex]);
 
-  // Guardado automático (pedido en el piloto): a los pocos segundos sin
-  // cambios se guarda la sección en curso. Solo si lo calificado ya tiene lo
-  // obligatorio; si falta, se espera sin mostrar error (el error aparece al
-  // pulsar Guardar o Siguiente). Si el servidor lo rechaza, no se reintenta
-  // hasta el siguiente cambio, para no repetir el aviso en bucle.
   const [autoSaveFailedFor, setAutoSaveFailedFor] = useState<Record<
     string,
     DraftResponseRisk
@@ -441,10 +420,6 @@ export function RiskEvaluationDetailPage() {
     savePrinciple,
   ]);
 
-  // No se puede avanzar de principio (ni ver el resumen) si falta calificar
-  // algún KPI aplicable — los marcados applicable=false por la aplicabilidad
-  // del perfil se excluyen y no bloquean el avance. "Guardar" sigue
-  // permitiendo progreso parcial: esta validación solo aplica a "Siguiente".
   const missingApplicableKpi = useCallback(
     (sectionIdx: number): boolean => {
       const section = sections[sectionIdx];
@@ -525,8 +500,6 @@ export function RiskEvaluationDetailPage() {
   const currentSectionIndicators =
     currentSection?.indicators.filter((ind) => countsInEvaluation(ind)) ?? [];
 
-  // Promedio ponderado por el peso de cada KPI, el mismo que calcula el
-  // servidor para el resumen y el historial.
   const currentSectionAverage = weightedSectionAverage(
     currentSectionIndicators,
     draft

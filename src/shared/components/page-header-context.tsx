@@ -32,15 +32,10 @@ function usePageHeaderContext(): PageHeaderContextValue {
   return ctx;
 }
 
-/** Lee el nombre destacado actual (lo usa el AppShell para mostrarlo en el navbar). */
 export function usePageHeaderName(): string | null {
   return usePageHeaderContext().name;
 }
 
-/**
- * Las páginas de una organización/evaluación puntual llaman esto para
- * destacar su nombre en el navbar mientras están montadas.
- */
 export function useSetPageHeaderName(name: string | null | undefined): void {
   const { setName } = usePageHeaderContext();
   useEffect(() => {

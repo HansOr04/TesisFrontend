@@ -73,10 +73,6 @@ function RoleSelect({
   );
 }
 
-// Desde «Gestión de proyectos» el superadministrador arma el equipo de cada
-// proyecto que creó: asigna usuarios que ya existen en la plataforma, crea
-// usuarios nuevos y, a los visualizadores, les habilita qué organizaciones
-// evaluadas pueden ver.
 export function ProjectMembersDialog({
   organisation,
   onOpenChange,
@@ -167,7 +163,6 @@ export function ProjectMembersDialog({
           roleCode: role || undefined,
         });
       }
-      // Lo que ve el visualizador se marcó junto con el rol.
       if (role === "assessment_viewer")
         await setViewerVisibility(
           org!,

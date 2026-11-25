@@ -12,13 +12,6 @@ import {
   type AssessmentAdminProfileRow,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 
-// RF-08: «Gestionar organizaciones» del Administrador de plataforma — lista
-// las organizaciones Assessment de TODOS los clientes (no solo la organización
-// activa en el selector), excluyendo las marcadas como confidenciales. El
-// backend (RequireGlobalSuperAdmin) es la fuente real de verdad del acceso;
-// esta página solo se enlaza en el menú para superadmins. Editar una
-// organización cambia primero al proyecto al que pertenece, porque el
-// formulario de edición trabaja sobre el proyecto activo.
 export function AssessmentAdminGlobalPage() {
   const auth = useAuth();
   const { t } = useTranslation();

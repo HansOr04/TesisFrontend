@@ -3,7 +3,6 @@ import type {
   OrganisationUser,
 } from "../../infrastructure/users-api";
 
-// Etiquetas y descripciones vienen del diccionario (app.users.role*).
 export const ROLE_OPTIONS: {
   code: AssessmentRoleCode | "";
   label: string;
@@ -31,7 +30,6 @@ export const ROLE_OPTIONS: {
   },
 ];
 
-/** Color del rótulo de cada rol en la tabla. */
 export function roleTone(role: AssessmentRoleCode | ""): string {
   switch (role) {
     case "assessment_admin":
@@ -44,7 +42,6 @@ export function roleTone(role: AssessmentRoleCode | ""): string {
       return "bg-muted text-muted-foreground";
   }
 }
-
 
 export function roleOf(u: OrganisationUser): AssessmentRoleCode | "" {
   return (u.roles[0]?.code as AssessmentRoleCode | undefined) ?? "";

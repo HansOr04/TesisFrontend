@@ -38,7 +38,6 @@ export function IndicatorToolListPage({ def }: { def: IndicatorToolUi }) {
   );
   const [exporting, setExporting] = useState(false);
 
-  // Descarga el panel consolidado de las organizaciones en esta herramienta.
   const handleExport = async () => {
     if (!org) return;
     setExporting(true);

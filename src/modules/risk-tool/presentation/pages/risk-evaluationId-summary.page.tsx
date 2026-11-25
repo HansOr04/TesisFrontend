@@ -98,7 +98,6 @@ export function RiskSummaryPage() {
   const [narrative, setNarrative] = useState<string | null>(null);
   const [generatingNarrative, setGeneratingNarrative] = useState(false);
 
-  // Determinístico, sin costo de IA — se carga junto al resumen.
   const impactQuery = useQuery(riskQueries.impactPriority(org, evaluationId));
   const impactPriorityItems = useMemo(
     () => impactQuery.data?.items ?? [],
@@ -112,7 +111,6 @@ export function RiskSummaryPage() {
     [historyQuery.data]
   );
 
-  // Tras completar o planificar: refresca evaluación, prioridad, historial y panel.
   const loadEvaluation = useCallback(async () => {
     if (!org) return;
     await Promise.all([
@@ -153,9 +151,6 @@ export function RiskSummaryPage() {
     }
   }, [org, token, evaluationId, t, loadEvaluation]);
 
-  // Antes de completar, el módulo de IA revisa si hay contradicciones entre
-  // KPI relacionados (S9 del cronograma de tesis). Si no encuentra nada, no
-  // agrega fricción y completa directo.
   const handleComplete = useCallback(async () => {
     if (!org || !token) return;
     setCheckingInconsistencies(true);
@@ -173,8 +168,6 @@ export function RiskSummaryPage() {
       }
       await runComplete();
     } catch {
-      // AI consistency check is an assist, not a gate — if it errors (e.g.
-      // provider timeout/malformed response), don't block completion.
       toast({
         title: t("app.common.warning"),
         description: t("app.assessment.common.inconsistencyCheckSkipped"),
@@ -233,9 +226,6 @@ export function RiskSummaryPage() {
     }
   }, [org, token, evaluationId, t]);
 
-  // Volver a tomar la evaluación: un ciclo nuevo para la misma organización.
-  // El anterior no se toca — queda en el historial, que es justo lo que se
-  // está mirando cuando se pulsa este botón.
   const handleRetake = useCallback(async () => {
     const profileId = evaluation?.profile.id;
     if (!org || !token || !profileId) return;
@@ -301,7 +291,6 @@ export function RiskSummaryPage() {
       }));
   }, [evaluation]);
 
-  // ── Planificar medida desde un KPI crítico (popup con el problema cargado) ──
   const [planIndicatorId, setPlanIndicatorId] = useState<string | null>(null);
   const [planSaving, setPlanSaving] = useState(false);
   const [planRisks, setPlanRisks] = useState<AssessmentRiskData[]>([]);

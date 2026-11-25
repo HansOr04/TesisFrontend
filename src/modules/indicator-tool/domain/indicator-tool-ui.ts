@@ -2,11 +2,6 @@ import { routeKeys } from "@/shared/config/route-keys";
 import type { IndicatorToolApi } from "../infrastructure/indicator-tool-api";
 import type { createToolQueries } from "@/shared/query/tool-queries";
 
-// Todo lo que distingue a la Herramienta Organizativa de la de Capacidades en
-// la interfaz: segmento de ruta, prefijo de traducciones, API, queries y
-// número de secciones. Las páginas de `presentation/pages` son genéricas y
-// reciben esta definición (mismo patrón que EvaluationToolDefinition en el
-// backend).
 export interface IndicatorToolUi<
   TApi extends IndicatorToolApi = IndicatorToolApi,
 > {
@@ -23,7 +18,6 @@ export interface IndicatorToolUi<
       Awaited<ReturnType<TApi["fetchImpactPriority"]>>
     >
   >;
-  /** Columnas de sección en el panel general. */
   sectionCount: number;
   routes: {
     list: "/assessments/organizational" | "/assessments/capacity";

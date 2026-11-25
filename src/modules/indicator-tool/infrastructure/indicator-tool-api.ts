@@ -24,10 +24,6 @@ import type {
   UpdateAssessmentSectionInput,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 
-// API de las herramientas basadas en KPI (Organizativa y de Capacidades): las
-// rutas y los contratos son idénticos; solo cambia el segmento de la
-// herramienta y el nombre del segmento de sección (dimensions | areas).
-
 export type IndicatorToolSlug = "organizational" | "capacity";
 
 export interface IndicatorToolOrganisationRow {
@@ -120,8 +116,6 @@ export function createIndicatorToolApi(
   sectionSegment: "dimensions" | "areas"
 ) {
   const base = `/assessments/${slug}`;
-
-  // ── Estructura (plantilla, secciones, KPI) ───────────────────────────────
 
   async function fetchTemplates(
     org: string,
@@ -331,8 +325,6 @@ export function createIndicatorToolApi(
     );
   }
 
-  // ── Panel general (panel general) ──────────────────────────────────
-
   async function fetchOrganisationsOverview(
     org: string,
     token?: string
@@ -343,8 +335,6 @@ export function createIndicatorToolApi(
       token
     );
   }
-
-  // ── Plan de mitigación simplificado ───────────────────────────────────────
 
   async function fetchMeasures(
     org: string,
@@ -393,8 +383,6 @@ export function createIndicatorToolApi(
       token
     ) as Promise<IndicatorToolMeasure>;
   }
-
-  // ── Asistencia con IA ──────────────────────────────────────────────────────
 
   async function improveObservation(
     org: string,
