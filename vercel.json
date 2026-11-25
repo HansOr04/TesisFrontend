@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://evaluartesis-5deec07f5fd8.herokuapp.com/auth/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
