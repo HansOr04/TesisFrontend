@@ -17,15 +17,24 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { exportAssessmentDashboard } from "@/modules/assessment-core/infrastructure/assessment-api";
+import { evaluationStatusKey } from "@/modules/assessment-core/domain/evaluation-status";
 import { coreQueries } from "@/modules/assessment-core/application/core-queries";
 import type {
   AssessmentDashboardFilters,
   AssessmentDashboardRow,
   AssessmentDashboardTool,
+  AssessmentEvaluationStatus,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 import { ConsolidatedTable } from "@/modules/assessment-core/presentation/components/consolidated-table";
 
 const EMPTY_FILTERS: AssessmentDashboardFilters = {};
+
+const STATUS_OPTIONS: AssessmentEvaluationStatus[] = [
+  "DRAFT",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "ARCHIVED",
+];
 
 export function AssessmentDashboardPage() {
   const auth = useAuth();
@@ -164,16 +173,11 @@ export function AssessmentDashboardPage() {
               <SelectItem value="ALL">
                 {t("app.assessment.dashboard.filterAllStatuses")}
               </SelectItem>
-              <SelectItem value="DRAFT">
-                {t("app.assessment.organizational.statusDraft")}
-              </SelectItem>
-              <SelectItem value="IN_PROGRESS">
-                {t("app.assessment.organizational.statusInProgress")}
-              </SelectItem>
-              <SelectItem value="COMPLETED">
-                {t("app.assessment.organizational.statusCompleted")}
-              </SelectItem>
-              <SelectItem value="ARCHIVED">ARCHIVED</SelectItem>
+              {STATUS_OPTIONS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t(evaluationStatusKey(status))}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

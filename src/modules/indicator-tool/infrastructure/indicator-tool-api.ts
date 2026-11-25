@@ -36,12 +36,14 @@ export interface IndicatorToolOrganisationRow {
   status: AssessmentEvaluationStatus | null;
   globalScore: number | null;
   sectionScores: AssessmentSectionScore[];
+  /** Cuenta secciones críticas (promedio <= 5). */
   criticalCount: number;
   isConsolidated?: boolean;
 }
 export interface IndicatorToolOrganisationsOverview {
   totalOrganisations: number;
   activeEvaluations: number;
+  /** Suma de criticalCount de todas las organizaciones. */
   totalCritical: number;
   overallCompliancePct: number;
   organisations: IndicatorToolOrganisationRow[];

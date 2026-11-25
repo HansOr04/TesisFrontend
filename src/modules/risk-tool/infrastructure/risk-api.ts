@@ -244,6 +244,7 @@ export interface RiskToolOrganisationRow {
   status: AssessmentEvaluationStatus | null;
   globalScore: number | null;
   sectionScores: AssessmentSectionScore[];
+  /** Cuenta riesgos no despreciables sin medida. */
   criticalCount: number;
   isConsolidated?: boolean;
 }
@@ -251,6 +252,7 @@ export interface RiskToolOrganisationRow {
 export interface RiskToolOrganisationsOverview {
   totalOrganisations: number;
   activeEvaluations: number;
+  /** Suma de criticalCount de todas las organizaciones. */
   totalCritical: number;
   overallCompliancePct: number;
   organisations: RiskToolOrganisationRow[];
