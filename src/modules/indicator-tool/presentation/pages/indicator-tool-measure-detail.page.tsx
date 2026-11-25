@@ -54,7 +54,6 @@ export function IndicatorToolMeasureDetailPage({
   const [verificationLinkInput, setVerificationLinkInput] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // El formulario se inicializa con la medida cargada (y al cambiar de medida).
   useEffect(() => {
     if (!measure) return;
     setProgressInput(measure.progressPct);

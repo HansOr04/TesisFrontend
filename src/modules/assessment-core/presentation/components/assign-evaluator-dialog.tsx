@@ -36,7 +36,6 @@ export const AssignEvaluatorDialog: FC<{
   const { t } = useTranslation();
   const auth = useAuth();
   const token = auth.currentUser?.accessToken;
-  // El dato «confidencial» solo lo cambia el superadministrador dueño del proyecto.
   const isActuallySuperAdmin = auth.ownedProjects.includes(
     auth.organisations?.current ?? ""
   );

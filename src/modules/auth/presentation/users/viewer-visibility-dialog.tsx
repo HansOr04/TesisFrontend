@@ -32,7 +32,6 @@ export function viewerVisibilityOf(
   return user.roles.find((r) => r.code === "assessment_viewer")?.visibility;
 }
 
-/** Texto corto de lo que ve un visualizador, para la tabla de usuarios. */
 export function useVisibilitySummary() {
   const { t } = useTranslation();
   return (visibility: ViewerVisibility | undefined) => {
@@ -44,7 +43,6 @@ export function useVisibilitySummary() {
   };
 }
 
-/** Lo que se guarda: con "todas" la lista no hace falta. */
 export function normalizeVisibility(v: ViewerVisibility): ViewerVisibility {
   return {
     allProfiles: v.allProfiles,
@@ -52,10 +50,6 @@ export function normalizeVisibility(v: ViewerVisibility): ViewerVisibility {
   };
 }
 
-// Lista de casillas con las organizaciones evaluadas del proyecto: un
-// administrador (o el superadministrador dueño del proyecto) elige cuáles ve
-// el visualizador, o todas, incluidas las que se registren después. Se usa
-// dentro del formulario del usuario y en el diálogo de visibilidad.
 export function ViewerScopePicker({
   org,
   value,
@@ -182,7 +176,6 @@ export function ViewerScopePicker({
   );
 }
 
-// Diálogo para cambiar después lo que ve un visualizador existente.
 export function ViewerVisibilityDialog({
   org,
   user,

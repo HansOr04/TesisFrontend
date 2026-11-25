@@ -9,19 +9,13 @@ import type { AssessmentEvaluationHistoryEntry } from "@/modules/assessment-core
 interface EvolutionHistoryProps {
   history: AssessmentEvaluationHistoryEntry[];
   t: Translate;
-  /** "Dimensión", "Área" o "Principio", según la herramienta. */
   sectionLabel?: string;
-  /** Inicia un ciclo nuevo para la misma organización y herramienta. */
   onRetake?: () => void;
   retaking?: boolean;
-  /** Evaluación desde la que se abre el historial: su columna no ofrece "Ver". */
   currentEvaluationId?: string;
-  /** Abre una evaluación del historial para ver la nota de cada KPI. */
   onOpenEvaluation?: (evaluationId: string) => void;
 }
 
-// Más allá de seis cortes la tabla no cabe sin scroll horizontal incómodo;
-// se muestran los más recientes, que son los que se comparan.
 const MAX_COLUMNS = 6;
 
 function formatDate(value: string | null): string {
@@ -33,12 +27,6 @@ function formatDate(value: string | null): string {
   });
 }
 
-/**
- * Variación entre el último corte y el anterior. Se calcula sobre los
- * valores ya redondeados a un decimal, que son los que se ven en la tabla:
- * si no, una diferencia de 0,01 entre 7,04 y 7,05 se lee como "7.0 → 7.1"
- * con variación "=", que no cuadra.
- */
 function Delta({ value }: { value: number | null }) {
   if (value === null) return <span className="text-muted-foreground">—</span>;
   const rounded = Number(value.toFixed(1));
@@ -57,15 +45,6 @@ function Delta({ value }: { value: number | null }) {
   );
 }
 
-/**
- * Historial de la organización en esta herramienta: cómo ha evolucionado el
- * puntaje global y, sobre todo, qué cambió en cada dimensión de un corte al
- * siguiente. Es solo lectura — para comparar, no para editar.
- *
- * Se muestra también cuando todavía no hay ningún corte cerrado: si
- * desapareciera, no habría forma de saber que el historial existe ni desde
- * dónde iniciar el siguiente ciclo.
- */
 export function EvolutionHistory({
   history,
   t,
@@ -75,8 +54,6 @@ export function EvolutionHistory({
   currentEvaluationId,
   onOpenEvaluation,
 }: EvolutionHistoryProps) {
-  // El orden del backend no está garantizado y aquí la cronología es el eje
-  // de toda la lectura, así que se ordena antes de recortar.
   const ordered = [...history].sort((a, b) => {
     const at = a.completedAt ? new Date(a.completedAt).getTime() : 0;
     const bt = b.completedAt ? new Date(b.completedAt).getTime() : 0;
@@ -86,8 +63,6 @@ export function EvolutionHistory({
   const latest = shown.at(-1);
   const previous = shown.length > 1 ? shown[shown.length - 2] : null;
 
-  // Una fila por dimensión: se toman todas las que aparecen en algún corte,
-  // con el nombre del más reciente (las plantillas se pueden renombrar).
   const sections = new Map<number, string>();
   for (const entry of shown) {
     for (const section of entry.sectionScores) {
@@ -116,8 +91,6 @@ export function EvolutionHistory({
         ? t("app.assessment.history.subtitleSingle")
         : t("app.assessment.history.subtitle", { count: shown.length });
 
-  // La columna del corte más reciente se resalta: es contra la que se
-  // compara todo lo demás.
   const columnClass = (index: number) =>
     index === shown.length - 1 ? "bg-brand/5 font-semibold" : undefined;
 
@@ -284,9 +257,6 @@ export function EvolutionHistory({
                     {previous && <td className="border-l border-border" />}
                   </tr>
 
-                  {/* La tabla compara dimensiones; el detalle KPI por KPI de
-                      cada corte se consulta abriendo esa evaluación, que se
-                      muestra en solo lectura por estar completada. */}
                   {onOpenEvaluation && (
                     <tr className="border-t border-border">
                       <td className="px-4 py-2.5 text-muted-foreground">

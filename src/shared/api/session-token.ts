@@ -1,7 +1,3 @@
-// Token de acceso en memoria (nunca en localStorage): la sesión persiste con
-// el refresh token que el backend guarda en una cookie HttpOnly y rota en
-// cada renovación. Este módulo es la única fuente del token para la capa HTTP.
-
 import { authBase } from "./auth-base";
 
 type Listener = (token: string | null) => void;
@@ -13,11 +9,6 @@ let refreshing: Promise<string | null> | null = null;
 const REFRESH_LOCK = "assessment.refresh";
 const REFRESH_TIMEOUT_MS = 20_000;
 
-/**
- * Las pestañas comparten la cookie, así que se turnan para renovar: la segunda
- * espera y manda ya la cookie nueva. Si el navegador no tiene Web Locks, el
- * servidor admite renovaciones simultáneas durante unos segundos.
- */
 function oneTabAtATime<T>(task: () => Promise<T>): Promise<T> {
   const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
   return locks ? (locks.request(REFRESH_LOCK, task) as Promise<T>) : task();
@@ -35,11 +26,6 @@ export const sessionToken = {
   },
 };
 
-/**
- * Pide un token de acceso nuevo con la cookie de refresh. Varias llamadas
- * concurrentes (p. ej. 3 peticiones que reciben 401 a la vez) comparten la
- * misma renovación. Devuelve null si no hay sesión.
- */
 export function refreshAccessToken(): Promise<string | null> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
@@ -48,7 +34,6 @@ export function refreshAccessToken(): Promise<string | null> {
         fetch(`${authBase}/auth/refresh`, {
           method: "POST",
           credentials: "include",
-          // Una petición colgada no deja esperando a las demás pestañas.
           signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
         })
       );
@@ -68,10 +53,6 @@ export function refreshAccessToken(): Promise<string | null> {
   return refreshing;
 }
 
-/**
- * fetch con Authorization y un reintento transparente tras renovar el token
- * cuando el backend responde 401 (token de acceso vencido).
- */
 export async function authorizedFetch(
   url: string,
   init: RequestInit = {},

@@ -3,8 +3,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { EvolutionHistory } from "./evolution-history";
 import type { AssessmentEvaluationHistoryEntry } from "@/modules/assessment-core/infrastructure/assessment-api";
 
-// El gráfico (recharts) necesita ResizeObserver, que jsdom no tiene; aquí
-// solo importa la tabla.
 vi.mock("@/shared/components/bar-line-chart", () => ({
   BarLineChart: () => null,
 }));
@@ -38,8 +36,6 @@ const history = [
   entry("e1", "2025-11-15T12:00:00.000Z", 7.4),
 ];
 
-// Historial comparativo: además de comparar dimensiones, cada corte se puede
-// abrir para ver la nota que se puso a cada KPI ese día.
 describe("EvolutionHistory, opening a past evaluation", () => {
   it("offers to open every other evaluation and marks the current one", () => {
     render(

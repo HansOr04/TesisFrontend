@@ -47,12 +47,10 @@ import {
   viewerVisibilityOf,
 } from "./viewer-visibility-dialog";
 
-// Administración de usuarios y permisos de la organización actual.
 export function UsersPage() {
   const auth = useAuth();
   const { t, tr } = useTranslation();
   const org = auth.organisations?.current;
-  // Solo el superadministrador dueño del proyecto otorga superadministrador.
   const ownsProject = Boolean(org && auth.ownedProjects.includes(org));
   const token = auth.currentUser?.accessToken;
   const queryClient = useQueryClient();
@@ -219,8 +217,6 @@ export function UsersPage() {
               {users.map((u) => {
                 const role = roleOf(u);
                 const isMe = u.id === auth.currentUser?.id;
-                // La cuenta de un superadministrador (contraseña, activación)
-                // solo la toca otro superadministrador; aquí se gestiona su rol.
                 const accountLocked = u.isSuperAdmin && !ownsProject;
                 return (
                   <tr
@@ -416,7 +412,6 @@ export function UsersPage() {
                 },
                 token
               );
-              // Lo que ve el visualizador se eligió en el mismo formulario.
               if (v.roleCode === "assessment_viewer")
                 await setViewerVisibility(
                   org!,
@@ -510,7 +505,6 @@ interface FormValues {
   password: string;
   roleCode: AssessmentRoleCode | "";
   isSuperAdmin: boolean;
-  /** Solo para el rol de visualizador: qué organizaciones evaluadas ve. */
   visibility: ViewerVisibility;
 }
 

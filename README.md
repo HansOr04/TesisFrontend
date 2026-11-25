@@ -27,7 +27,7 @@ Si usas Google OAuth, define también `VITE_GOOGLE_OAUTH_CLIENT_ID` (debe coinci
 
 Las variables `VITE_*` terminan dentro del JavaScript que descarga el navegador: nunca deben llevar una clave secreta. Entornos y dónde vive cada variable: [`docs/entornos-y-secretos.md`](https://github.com/HansOr04/TesisProyectoBack/blob/main/docs/entornos-y-secretos.md) del repositorio del servidor.
 
-## Manuales
+## Documentación
 
-- [Manual de usuario](docs/manual-usuario.md)
-- [Manual técnico](https://github.com/HansOr04/TesisProyectoBack/blob/main/docs/manual-tecnico.md)
+Todo está en **[docs/](docs/README.md)**: manual de usuario, arquitectura, cómo
+expandir, decisiones y referencia del código.

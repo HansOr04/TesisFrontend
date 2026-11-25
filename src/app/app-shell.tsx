@@ -45,9 +45,6 @@ const TONE_DOT: Record<NonNullable<NavItem["tone"]>, string> = {
   risk: "bg-tool-risk",
 };
 
-// Layout autenticado: sidebar oscuro con la marca, navegación por secciones
-// (cada herramienta con su color) y barra superior con organización, idioma
-// y usuario. Las páginas se renderizan en <Outlet />.
 export function AppShell() {
   return (
     <PageHeaderProvider>
@@ -170,7 +167,6 @@ function AppShellInner() {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Barra lateral: fija en escritorio, panel deslizante en móvil */}
       {mobileOpen && (
         <button
           type="button"
@@ -275,10 +271,6 @@ function AppShellInner() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Un lavado al 10% dejaba el azul y el verde casi indistinguibles.
-            La franja inferior va a color pleno, que es lo que de verdad
-            identifica la herramienta, y el fondo sube lo justo para
-            acompañarla sin pelearse con el contenido. */}
         <header
           className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/80 px-4 backdrop-blur sm:px-6"
           style={
@@ -308,8 +300,6 @@ function AppShellInner() {
             </button>
             <span className="hidden sm:inline">Evalúa</span>
             <span className="hidden sm:inline text-border">/</span>
-            {/* En teléfono no caben las dos cosas: si hay una organización
-                abierta, su nombre tiene prioridad sobre el de la sección. */}
             <span
               className={cn(
                 "font-semibold text-foreground",
@@ -365,8 +355,6 @@ function AppShellInner() {
           </div>
         </header>
         <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6 animate-fade-up">
-          {/* Sin rol en el proyecto el servidor responde 403 a todo: en vez de
-              pantallas vacías, se explica qué falta. */}
           {auth.isReadOnly && (
             <p className="mb-4 rounded-xl bg-[#7A3EB1]/8 px-4 py-2.5 text-sm text-[#5B2A86]">
               {t("app.shell.readOnly")}

@@ -22,8 +22,6 @@ declare global {
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
-// Botón "Iniciar sesión con Google" (Google Identity Services). Carga el
-// script bajo demanda y entrega el id_token al backend (POST /auth/google).
 export function GoogleSignInButton({
   onError,
 }: {

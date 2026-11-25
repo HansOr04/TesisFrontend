@@ -1,14 +1,8 @@
 import { SCORE_COLORS } from "@/shared/design/score-colors";
-// Velocímetro de aguja por dimensión/global (FE3-B04), replicando el diseño de Figma:
-// semicírculo con 3 zonas fijas (rojo 0–5, amarillo 5–7, risk 7–10) y una aguja que
-// apunta al valor. Sin dependencias nuevas — SVG propio.
 const RED = SCORE_COLORS.critical;
-/** Amarillo propio del velocímetro; el resto de la app usa SCORE_COLORS.medium. */
 export const GAUGE_YELLOW = "#EAB308";
 const GREEN = SCORE_COLORS.high;
 
-// Umbrales de zona visual (leyenda del mockup: 0-5 Bajo, 5-7 Medio, 7-10 Alto).
-// Coloreado crítico de negocio (RF-03: score <= 5) usa el mismo corte rojo/no-rojo.
 export function gaugeColor(value: number): string {
   if (value <= 5) return RED;
   if (value < 7) return GAUGE_YELLOW;
@@ -38,9 +32,9 @@ function angleForValue(value: number): number {
 }
 
 interface GaugeProps {
-  value: number; // 0-10
+  value: number;
   label?: string;
-  weightLabel?: string; // e.g. "PESO 25%"
+  weightLabel?: string;
   size?: "lg" | "sm";
 }
 
@@ -62,7 +56,6 @@ export function Gauge({ value, label, weightLabel, size = "sm" }: GaugeProps) {
       data-testid="gauge"
       style={{ maxWidth: box }}
     >
-      {/* Se adapta al ancho de su tarjeta, sin pasar de su tamaño nominal. */}
       <svg
         className="h-auto w-full"
         viewBox={`0 0 ${box} ${cy + 14}`}

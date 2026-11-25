@@ -32,7 +32,6 @@ type AdminMode = "me" | "existing" | "new";
 
 const SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])$/;
 
-/** Sugiere un identificador a partir del nombre escrito. */
 function slugify(name: string): string {
   return name
     .normalize("NFD")
@@ -43,10 +42,6 @@ function slugify(name: string): string {
     .slice(0, 32);
 }
 
-// Alta y mantenimiento de proyectos (inquilinos). Solo superadmin, y cada uno
-// ve únicamente los proyectos que creó. Un proyecto nuevo nace con sus tres
-// plantillas y su administrador, y desde aquí mismo se le asignan usuarios
-// existentes o se crean nuevos.
 export function OrganisationsPage() {
   const auth = useAuth();
   const { t, tr } = useTranslation();
@@ -235,7 +230,6 @@ export function OrganisationsPage() {
         onCreated={(created) => {
           setShowNew(false);
           void organisationsQueries.invalidate(queryClient);
-          // Paso siguiente natural: armar el equipo del proyecto recién creado.
           setMembersOf(created);
         }}
       />
@@ -286,7 +280,6 @@ function OrganisationFormDialog({
     enabled: open && adminMode === "existing",
     staleTime: 30 * 1000,
   });
-  // Uno mismo ya es la opción «Yo».
   const directory = (directoryQuery.data ?? []).filter(
     (u) => u.id !== auth.currentUser?.id
   );
@@ -301,8 +294,6 @@ function OrganisationFormDialog({
 
   const idValue = idTouched ? v.id : slugify(v.name);
 
-  // Solo se envían los datos del modo elegido: una cuenta existente conserva
-  // su nombre y su contraseña.
   const adminInput = (): Pick<
     CreateOrganisationInput,
     "adminEmail" | "adminName" | "adminPassword"
@@ -336,7 +327,6 @@ function OrganisationFormDialog({
       });
       reset();
       onCreated(result.organisation);
-      // El proyecto nuevo aparece en el selector sin volver a entrar.
       void auth.reloadProjects();
     },
     onError: (err) =>

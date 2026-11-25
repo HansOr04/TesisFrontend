@@ -8,10 +8,6 @@ import { AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
 import { KpiHelpRubricButtons } from "@/modules/assessment-core/presentation/components/kpi-help-rubric-buttons";
 
-// RF-05: misma tarjeta de indicador que Organizational (kpi-score-row.tsx), más los dos
-// campos de riesgo obligatorios/opcionales que exige la Herramienta de Riesgos
-// (riskDescription obligatoria, riskType opcional) — el servicio clasifica el
-// riesgo y crea/actualiza AssessmentRisk a partir de estos dos campos al guardar.
 interface KpiScoreRowRiskProps {
   indicatorId: string;
   number: number;
@@ -23,7 +19,6 @@ interface KpiScoreRowRiskProps {
   observation: string;
   riskDescription: string;
   riskType: string;
-  /** El evaluador la marca a mano como "requiere atención", sin importar el score. */
   manualCritical: boolean;
   t: (key: string) => string;
   onChange: (
@@ -36,7 +31,6 @@ interface KpiScoreRowRiskProps {
   ) => void;
   onImproveObservation?: () => void;
   improvingObservation?: boolean;
-  /** Evaluación completada: se ve la nota y lo registrado, sin poder cambiarlo. */
   readOnly?: boolean;
 }
 

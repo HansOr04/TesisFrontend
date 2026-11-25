@@ -13,7 +13,6 @@ import { Label } from "@/shared/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import type { Translate } from "@/shared/i18n/i18n";
 
-/** Qué abarca el Gantt del reporte. Debe coincidir con el DTO del backend. */
 export type GanttScope = "tool" | "organisation" | "project";
 
 interface ExportReportDialogProps {
@@ -42,12 +41,6 @@ const SCOPES: { value: GanttScope; labelKey: string; helpKey: string }[] = [
   },
 ];
 
-/**
- * El reporte siempre lleva el mismo contenido; lo único que se elige al
- * generarlo es hasta dónde llega el Gantt del plan de acción, porque a veces
- * interesa el plan de esta evaluación y a veces el de toda la organización o
- * el del proyecto entero.
- */
 export function ExportReportDialog({
   open,
   onOpenChange,

@@ -9,8 +9,6 @@ export interface DraftResponseRisk {
   manualCritical: boolean;
 }
 
-// RF-05: vista de UN principio a la vez (wizard), mismo patrón que DimensionView
-// de Organizational (section-panel.tsx) más los campos de riesgo por KPI.
 interface PrincipleViewProps {
   number: number;
   name: string;
@@ -27,7 +25,6 @@ interface PrincipleViewProps {
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
-  /** Evaluación completada: los KPI se muestran sin poder editarse. */
   readOnly?: boolean;
 }
 

@@ -19,15 +19,6 @@ interface SessionExpiredDialogProps {
   onLogout: () => void;
 }
 
-/**
- * La sesión caducó estando dentro de la aplicación. En vez de mandar al
- * usuario a la pantalla de acceso —lo que desmonta todo y se lleva por
- * delante el formulario a medio llenar—, se bloquea la pantalla con este
- * diálogo: se escribe la contraseña y se sigue exactamente donde se estaba.
- *
- * No se puede cerrar con Escape ni clicando fuera: mientras la sesión no se
- * reanude, cualquier cosa que se intente guardar fallaría.
- */
 export function SessionExpiredDialog({
   email,
   onResume,

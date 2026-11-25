@@ -24,8 +24,6 @@ const indicators = [
   indicator("i3", "KPI 1.3", "Evaluación del personal"),
 ];
 
-// Formulario de calificación de una dimensión (HU-29): cada KPI con su fila,
-// el contador de avance y el cambio de nota que sube a la página.
 describe("DimensionView, scoring form of one dimension (HU-29)", () => {
   it("shows every KPI of the dimension and how many are already scored", () => {
     const responses: Record<string, DraftResponse> = {

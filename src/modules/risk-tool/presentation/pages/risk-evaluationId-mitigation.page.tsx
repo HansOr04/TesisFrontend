@@ -67,7 +67,6 @@ import { formatDateOnly, parseDateOnly } from "@/shared/lib/date-only";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-/** Días enteros de `now` a `value` (negativo si ya pasó), como el Gantt. */
 function daysUntil(value: string, now: number): number {
   const diff = parseDateOnly(value).getTime() - now;
   return diff >= 0
@@ -176,7 +175,6 @@ export function RiskMitigationPage() {
   const [suggestionsFailed, setSuggestionsFailed] = useState(false);
   const [suggestions, setSuggestions] = useState<SuggestionDraft[]>([]);
 
-  // Tras crear/actualizar medidas: refresca riesgos, Gantt, evaluación y panel.
   const loadData = useCallback(async () => {
     if (!org) return;
     await riskQueries.invalidateEvaluation(queryClient, org, evaluationId);
@@ -262,7 +260,6 @@ export function RiskMitigationPage() {
     return map;
   }, [evaluation]);
 
-  // Una sola referencia de "hoy" para todas las tarjetas del tablero.
   const [now] = useState(() => Date.now());
 
   const measuresByStatus = useMemo(() => {
@@ -1061,9 +1058,6 @@ export function RiskMitigationPage() {
   );
 }
 
-// Lo que cada columna necesita contar de una medida: si una pendiente ya
-// debió empezar, cuánto le queda o cuánto se atrasó la que está en curso, y
-// en la concluida, qué se implementó y si dejó medio de verificación.
 function MeasureCardStatus({
   measure,
   now,

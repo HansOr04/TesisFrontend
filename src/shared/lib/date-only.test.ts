@@ -21,7 +21,6 @@ describe("date-only", () => {
   });
 
   it("arma la fecha del campo con el día local", () => {
-    // 23:30 del 9 de noviembre en hora local: sigue siendo el 9.
     expect(toInputDate(new Date(2026, 10, 9, 23, 30))).toBe("2026-11-09");
   });
 });

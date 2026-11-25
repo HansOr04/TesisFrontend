@@ -118,11 +118,6 @@ const EMPTY_INDICATOR_FORM: IndicatorFormState = {
   active: true,
 };
 
-// Consumido por app/src/routes/_loggedin/assessments/{organizational,risk,capacity}/admin.tsx —
-// un único componente de administración de estructura (secciones + KPI) para
-// las 3 herramientas, ya que AssessmentSection/AssessmentIndicator son modelos compartidos
-// y el backend ya expone el CRUD completo (versionado copy-on-write: editar una
-// plantilla ya evaluada crea una nueva versión en vez de mutar la existente).
 export function AssessmentTemplateAdmin({
   toolTitle,
   sectionLabel,
@@ -189,8 +184,6 @@ export function AssessmentTemplateAdmin({
       variant: "destructive",
     });
   };
-
-  // ── Sección ──────────────────────────────────────────────────────────────
 
   const openNewSection = () => {
     setSectionForm({
@@ -273,8 +266,6 @@ export function AssessmentTemplateAdmin({
       setSaving(false);
     }
   };
-
-  // ── Indicador ────────────────────────────────────────────────────────────
 
   const openNewIndicator = (section: AssessmentSectionData) => {
     setIndicatorForm({

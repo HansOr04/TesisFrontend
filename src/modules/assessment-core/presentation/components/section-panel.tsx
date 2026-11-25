@@ -7,9 +7,6 @@ export interface DraftResponse {
   manualCritical: boolean;
 }
 
-// FE3-B03/B04: vista de UNA dimensión a la vez (wizard), replicando el diseño de
-// Figma  — nada de acordeón con las 6 dimensiones abiertas
-// a la vez.
 interface DimensionViewProps {
   number: number;
   name: string;
@@ -24,10 +21,7 @@ interface DimensionViewProps {
   ) => void;
   onImproveObservation?: (indicatorId: string) => void;
   improvingIndicatorId?: string | null;
-  /** Evaluación completada: los KPI se muestran sin poder editarse. */
   readOnly?: boolean;
-  /** Sobrescribe las etiquetas específicas de Organizational ("Dimensión", "KPI completados")
-   * para reutilizar este componente en Capacity ("Área") sin duplicarlo. */
   labels?: { dimension: string; indicatorsCompleted: string };
 }
 

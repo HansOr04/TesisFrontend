@@ -10,8 +10,6 @@ import {
   type UpdateIndicatorToolMeasureInput,
 } from "@/modules/indicator-tool/infrastructure/indicator-tool-api";
 
-// Instancia de la API genérica de herramientas por KPI. Los nombres con
-// prefijo se conservan para los consumidores existentes.
 export const capacityApi = createIndicatorToolApi("capacity", "areas");
 
 export const {

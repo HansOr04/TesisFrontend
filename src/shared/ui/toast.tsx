@@ -30,7 +30,7 @@ const toastVariants = cva(
         default: "border bg-background text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
-        success: "group border-green-500 bg-green-500 text-white", // Define the success variant
+        success: "group border-green-500 bg-green-500 text-white",
       },
     },
     defaultVariants: {
@@ -103,7 +103,6 @@ const ToastDescription = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Description>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
 >(({ className, ...props }, ref) => {
-  // Handle multi-line strings by converting newlines to <br />
   const content =
     typeof props.children === "string"
       ? props.children.split("\n").map((line, index, array) => (

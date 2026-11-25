@@ -3,14 +3,6 @@ import { useTranslation } from "@/shared/i18n/i18n";
 import type { AssessmentGanttItem } from "@/modules/risk-tool/infrastructure/risk-api";
 import { parseDateOnly } from "@/shared/lib/date-only";
 
-// Cronograma de mitigación/acción (RF-06, luego rediseñado): barra horizontal por
-// medida, posicionada por CSS (offset%/ancho% dentro del rango total de fechas) —
-// sin librería de gráficos, mismo criterio de "SVG/CSS propio" ya usado en gauge.tsx.
-//
-// El color de cada barra refleja el CUMPLIMIENTO DE PLAZO, no el % de avance ni el
-// status crudo: risk = completada, rojo = plazo vencido sin completar (atrasada),
-// ámbar = en curso/pendiente pero todavía dentro de plazo. Mismos hex que gauge.tsx
-// para mantener el mismo lenguaje visual que los badges de puntaje KPI.
 const RED = SCORE_COLORS.critical;
 const YELLOW = SCORE_COLORS.medium;
 const GREEN = SCORE_COLORS.high;
@@ -26,7 +18,7 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 function startOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day; // semana empieza en lunes
+  const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
   return d;
@@ -103,8 +95,6 @@ export function GanttChart({
   const todayPct = Math.min(Math.max(pctFor(new Date(now)), 0), 100);
 
   return (
-    // En pantallas angostas el cronograma se desplaza dentro de su caja en
-    // vez de ensanchar toda la página (HU-58).
     <div className="overflow-x-auto" data-testid="gantt-chart">
       <div className="min-w-[640px] space-y-3">
         <div className="relative">
@@ -132,10 +122,7 @@ export function GanttChart({
         <div className="space-y-2">
           {measures.map((m) => {
             const left = pctFor(parseDateOnly(m.start));
-            const width = Math.max(
-              pctFor(parseDateOnly(m.end)) - left,
-              2 // ancho mínimo visible
-            );
+            const width = Math.max(pctFor(parseDateOnly(m.end)) - left, 2);
             const color = scheduleColor(m, now);
             const endMs = parseDateOnly(m.end).getTime();
             const overdueDays =

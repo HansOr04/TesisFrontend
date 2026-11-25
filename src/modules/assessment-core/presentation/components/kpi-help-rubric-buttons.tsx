@@ -23,10 +23,6 @@ interface RubricBand {
 
 const RUBRIC_LINE = /^(\d{1,2}(?:\s*-\s*\d{1,2})?)\s*=\s*(.+)$/;
 
-// Rúbrica analítica: scoringRubric guarda un JSON `{"criteria": ["...", ...]}`
-// con 3-5 criterios verificables específicos del KPI (no una sola descripción
-// holística por puntaje). Se muestran como checklist; el puntaje 1-10 depende
-// de cuántos criterios se cumplen (leyenda genérica, no repetida por KPI).
 function parseRubricCriteria(text: string): string[] | null {
   try {
     const parsed: unknown = JSON.parse(text);
@@ -40,14 +36,10 @@ function parseRubricCriteria(text: string): string[] | null {
       );
       return criteria.length > 0 ? criteria : null;
     }
-  } catch {
-    // No es JSON: puede ser una rúbrica antigua en formato "10 = ...".
-  }
+  } catch {}
   return null;
 }
 
-// Formato legado "10 = descripción.\n7-8 = descripción...." — se mantiene como
-// fallback para cualquier KPI que aún no se haya migrado a criterios.
 function parseRubricBands(text: string): RubricBand[] | null {
   const lines = text
     .split("\n")
@@ -74,10 +66,6 @@ const SCORE_LEGEND = [
   { key: "None", color: gaugeColor(1) },
 ] as const;
 
-// FE3-B03 (rediseño): dos botones ícono junto al nombre del KPI, siempre
-// visibles — Ayuda (qué documento/proceso debe existir) y Rúbrica (cómo
-// interpretar la escala 1-10). Compartido por Organizativa/Capacidades (kpi-score-row.tsx)
-// y Risk (kpi-score-row-risk.tsx) para no duplicar el Dialog.
 export function KpiHelpRubricButtons({
   helpText,
   scoringRubric,

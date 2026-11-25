@@ -14,9 +14,6 @@ import type {
   AssessmentSectionScore,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 
-// FE3-B05: resumen ejecutivo — velocímetros de aguja por dimensión, puntaje
-// global, tabla de resumen por dimensión y botón "Completar evaluación"
-// .
 interface EvaluatedSection {
   id: string;
   number: number;
@@ -47,12 +44,8 @@ interface ExecutiveSummaryProps {
   t: (key: string) => string;
   onComplete: () => void;
   onDimensionClick?: (number: number) => void;
-  /** Sobrescribe las etiquetas específicas de Organizational (título, "Dimensión", etc.)
-   * para reutilizar este componente en Risk ("Principio") sin duplicarlo. */
   labels?: Partial<ExecutiveSummaryLabels>;
-  /** Abre el plan de acción/mitigación para planificar una medida de este KPI. */
   onPlanMeasure?: (indicator: AssessmentCriticalIndicator) => void;
-  /** KPI que ya cuentan con una medida registrada. */
   indicatorsWithMeasure?: Set<string>;
 }
 
@@ -117,8 +110,6 @@ export function ExecutiveSummary({
       t("app.assessment.organizational.completeEvaluation"),
   };
 
-  // Mismo criterio que el formulario: un KPI desactivado o que no aplica a
-  // esta organización no se pide, así que tampoco cuenta en el total.
   const countedIndicators = (section?: EvaluatedSection) =>
     section?.indicators.filter((i) => countsInEvaluation(i)).length ?? 0;
   const totalIndicators = sections.reduce(
@@ -235,8 +226,6 @@ export function ExecutiveSummary({
           </CardContent>
         </Card>
 
-        {/* Velocímetros del mismo tamaño en una cuadrícula pareja: el nombre
-            ocupa siempre dos líneas para que todos queden alineados. */}
         <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 2xl:grid-cols-3">
           {sectionScores.map((section) => (
             <Card
