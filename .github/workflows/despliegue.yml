@@ -87,6 +87,12 @@ jobs:
           body=$(curl -fsS --max-time 20 -X POST "$WEB_URL/auth/refresh")
           echo "$body" | jq -e 'has("accessToken") and .accessToken == null' >/dev/null \
             || { echo "::error::/auth no llega a la API desde la web"; exit 1; }
+      - name: Cabeceras de seguridad
+        run: |
+          headers=$(curl -fsSI --max-time 20 "$WEB_URL/" | tr '[:upper:]' '[:lower:]')
+          for h in content-security-policy x-content-type-options x-frame-options referrer-policy; do
+            echo "$headers" | grep -q "^$h:" || { echo "::error::Falta la cabecera $h"; exit 1; }
+          done
       - name: Resumen
         run: |
           {
