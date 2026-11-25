@@ -1,4 +1,5 @@
 import { authorizedFetch, baseURL } from "@/shared/api/http-client";
+import { authBase } from "@/shared/api/auth-base";
 import { HttpResponseError } from "@/shared/lib/http-response-error";
 import type { AuthSession, OrganisationRoles } from "../domain/auth.types";
 
@@ -21,7 +22,7 @@ export async function loginWithPassword(
   email: string,
   password: string
 ): Promise<AuthSession> {
-  const response = await fetch(`${baseURL}/auth/login`, {
+  const response = await fetch(`${authBase}/auth/login`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -31,7 +32,7 @@ export async function loginWithPassword(
 }
 
 export async function loginWithGoogle(idToken: string): Promise<AuthSession> {
-  const response = await fetch(`${baseURL}/auth/google`, {
+  const response = await fetch(`${authBase}/auth/google`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -56,7 +57,7 @@ export async function fetchMe(token: string): Promise<MeResponse> {
 /** Cierra la sesión en el servidor (revoca el refresh token de la cookie). */
 export async function logoutSession(): Promise<void> {
   try {
-    await fetch(`${baseURL}/auth/logout`, {
+    await fetch(`${authBase}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

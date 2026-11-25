@@ -2,14 +2,26 @@
 // el refresh token que el backend guarda en una cookie HttpOnly y rota en
 // cada renovación. Este módulo es la única fuente del token para la capa HTTP.
 
+import { authBase } from "./auth-base";
+
 type Listener = (token: string | null) => void;
 
 let accessToken: string | null = null;
 const listeners = new Set<Listener>();
 let refreshing: Promise<string | null> | null = null;
 
-const configured = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-const apiBase = configured && configured.length > 0 ? configured : "/api";
+const REFRESH_LOCK = "assessment.refresh";
+const REFRESH_TIMEOUT_MS = 20_000;
+
+/**
+ * Las pestañas comparten la cookie, así que se turnan para renovar: la segunda
+ * espera y manda ya la cookie nueva. Si el navegador no tiene Web Locks, el
+ * servidor admite renovaciones simultáneas durante unos segundos.
+ */
+function oneTabAtATime<T>(task: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  return locks ? (locks.request(REFRESH_LOCK, task) as Promise<T>) : task();
+}
 
 export const sessionToken = {
   get: (): string | null => accessToken,
@@ -32,10 +44,14 @@ export function refreshAccessToken(): Promise<string | null> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
     try {
-      const response = await fetch(`${apiBase}/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await oneTabAtATime(() =>
+        fetch(`${authBase}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+          // Una petición colgada no deja esperando a las demás pestañas.
+          signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
+        })
+      );
       if (!response.ok) {
         sessionToken.set(null);
         return null;

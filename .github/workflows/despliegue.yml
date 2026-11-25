@@ -3,7 +3,7 @@
 # workflow espera a que el despliegue de producción de ESE commit termine y
 # verifica la web publicada:
 #
-#   esperar despliegue ── página principal y recursos ── rutas de la aplicación
+#   esperar despliegue ── página principal y recursos ── rutas ── sesión
 #
 # Si Vercel falla o la web no carga, el workflow queda en rojo.
 name: Despliegue
@@ -80,11 +80,18 @@ jobs:
             echo "$path → $code"
             [ "$code" = 200 ] || { echo "::error::$path respondió $code"; exit 1; }
           done
+      # La sesión pasa por el dominio de la web (cookie propia, HU-71): sin
+      # cookie, la API responde una sesión anónima y no la página de la web.
+      - name: Sesión por el dominio de la web
+        run: |
+          body=$(curl -fsS --max-time 20 -X POST "$WEB_URL/auth/refresh")
+          echo "$body" | jq -e 'has("accessToken") and .accessToken == null' >/dev/null \
+            || { echo "::error::/auth no llega a la API desde la web"; exit 1; }
       - name: Resumen
         run: |
           {
             echo "### Producción verificada"
             echo "- Commit: \`${SHA:0:7}\`"
             echo "- Web: $WEB_URL"
-            echo "- Página, recursos y rutas: correctos"
+            echo "- Página, recursos, rutas y sesión: correctos"
           } >> "$GITHUB_STEP_SUMMARY"
