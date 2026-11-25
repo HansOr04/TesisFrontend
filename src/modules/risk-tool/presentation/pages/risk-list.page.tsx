@@ -174,7 +174,7 @@ export function RiskPanelGeneralPage() {
           <CardContent className="flex items-center justify-between py-4">
             <div>
               <div className="text-xs uppercase text-danger font-semibold">
-                {t("app.assessment.risk.statCriticalRisks")}
+                {t("app.assessment.risk.statUnmitigatedRisks")}
               </div>
               <div className="text-lg font-bold mt-1 text-danger">
                 {overview?.totalCritical ?? 0}

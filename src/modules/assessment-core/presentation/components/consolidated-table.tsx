@@ -1,6 +1,7 @@
 import { Badge } from "@/shared/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { gaugeColor } from "@/modules/assessment-core/presentation/components/gauge";
+import { evaluationStatusKey } from "@/modules/assessment-core/domain/evaluation-status";
 import type {
   AssessmentDashboardRow,
   AssessmentDashboardTool,
@@ -54,7 +55,7 @@ function ToolCell({
         />
       )}
       <Badge variant="outline" className="text-[10px] mt-1">
-        {summary.status}
+        {t(evaluationStatusKey(summary.status))}
       </Badge>
       {summary.criticalAlertCount > 0 && (
         <div className="flex items-center justify-center gap-1 mt-1 text-[10px] text-danger">
