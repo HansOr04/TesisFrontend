@@ -13,15 +13,12 @@ import {
 
 interface BarLineChartProps {
   chartData: { key: string; value: number }[];
-  /** Color de cada barra según su valor (por ejemplo, el del semáforo). */
   barColor: (value: number) => string;
   lineColor?: string;
   yDomain?: [number, number];
   valueLabel?: string;
 }
 
-// Evolución en el tiempo en barras (una por corte, con el color de su nivel)
-// y una línea encima que une los resultados para ver la tendencia.
 export function BarLineChart({
   chartData,
   barColor,

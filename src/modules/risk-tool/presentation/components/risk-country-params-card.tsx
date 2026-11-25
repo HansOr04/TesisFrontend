@@ -14,8 +14,6 @@ import {
   upsertRiskCountryParam,
 } from "../../infrastructure/risk-api";
 
-// Umbral de despreciabilidad por país: score > umbral ⇒ riesgo despreciable.
-// Si un país no tiene fila, aplica el umbral de la plantilla (5).
 export function RiskCountryParamsCard() {
   const auth = useAuth();
   const { t } = useTranslation();

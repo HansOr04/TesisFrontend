@@ -1,14 +1,3 @@
-# Integración continua de la aplicación web (HU-61). Etapas, en paralelo
-# donde se puede:
-#
-#   cambios ─┬─ estilo, tipos, compilación
-#            ├─ pruebas y cobertura ── sonar
-#            └─ mutación (matriz por módulo)
-#   convención y seguridad corren sin esperar a nadie.
-#
-# El último trabajo junta los resultados y es el que exige la protección de
-# ramas (HU-62): si cualquier etapa falla o se cancela, no se puede integrar.
-# Un pull request que solo cambia documentación se salta las pruebas.
 name: CI
 
 on:
@@ -18,8 +7,6 @@ on:
     branches: [develop, main]
   workflow_dispatch:
 
-# En un pull request, un push nuevo cancela la corrida anterior. En develop y
-# main no: cada fusión tiene que quedar verificada.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -43,6 +30,7 @@ jobs:
           filters: |
             codigo:
               - 'src/**'
+              - 'scripts/**'
               - 'public/**'
               - 'index.html'
               - 'package.json'
@@ -65,7 +53,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      # Títulos y commits con Conventional Commits: tipo(alcance opcional): texto.
       - name: Título y commits del pull request
         env:
           TITLE: ${{ github.event.pull_request.title }}
@@ -101,9 +88,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      # Compara `npm audit` (todas las dependencias) de la rama base con
-      # el del cambio: falla si se agregan vulnerabilidades altas o críticas.
-      # Las que ya existían se informan en el resumen sin bloquear.
       - name: Vulnerabilidades nuevas en dependencias
         run: |
           ids() {
@@ -145,6 +129,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/preparar
       - run: npm run lint
+      - run: npm run comentarios
 
   tipos:
     name: tipos
@@ -166,7 +151,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/preparar
-      # Falla si la cobertura baja de los mínimos de vite.config.ts.
       - run: npm run test:coverage -- --reporter=default --reporter=github-actions
       - name: Cobertura en el resumen
         if: always()
@@ -194,8 +178,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Lógica con pruebas y su mínimo de mutantes detectados (medido al
-        # crearlos, con un margen). Subirlos cuando mejoren.
         include:
           - modulo: calculos
             archivos: src/modules/assessment-core/domain/section-average.ts,src/modules/analytics/domain/simulator.ts
@@ -215,7 +197,6 @@ jobs:
             stryker.config.json > stryker.ci.json
           npx stryker run stryker.ci.json --mutate "${{ matrix.archivos }}"
 
-  # Compila con la misma orden que Vercel (tsc -b + vite build).
   compilacion:
     name: compilación
     needs: cambios
@@ -227,9 +208,6 @@ jobs:
       - uses: ./.github/actions/preparar
       - run: npm run build
 
-  # Se activa al definir la variable SONAR_ORGANIZATION y el secreto
-  # SONAR_TOKEN del repositorio (cuenta de SonarCloud); mientras tanto queda
-  # como «omitido».
   sonar:
     name: sonar
     needs: cobertura
@@ -252,8 +230,6 @@ jobs:
             -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
             -Dsonar.projectKey=${{ vars.SONAR_ORGANIZATION }}_TesisFrontend
 
-  # Conserva el nombre del trabajo anterior porque es el que exige la
-  # protección de ramas de develop y main.
   ci:
     name: Estilo, tipos, pruebas y compilación
     if: always()
@@ -271,8 +247,6 @@ jobs:
             echo "|---|---|"
             echo "$RESULTS" | jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"'
           } >> "$GITHUB_STEP_SUMMARY"
-          # Omitida está bien (sin cambios de código o Sonar sin configurar);
-          # fallida o cancelada, no.
           failed=$(echo "$RESULTS" | jq -r '[to_entries[] | select(.value.result == "failure" or .value.result == "cancelled") | .key] | join(", ")')
           if [ -n "$failed" ]; then
             echo "::error::No pasaron: $failed"

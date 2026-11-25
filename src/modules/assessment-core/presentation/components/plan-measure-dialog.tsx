@@ -53,15 +53,11 @@ interface PlanMeasureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   problem: MeasureProblem | null;
-  /** "dates": fecha inicio/fin (planes de acción) · "week": semana + duración (mitigación). */
   scheduleMode: "dates" | "week";
-  /** Las herramientas de plan de acción piden un nombre corto además de la descripción. */
   requireName?: boolean;
   saving: boolean;
   onSave: (values: PlanMeasureValues) => Promise<void>;
-  /** Pide una sugerencia a la IA para este KPI. Devuelve null si no hay sugerencia. */
   onSuggest?: () => Promise<AiMeasureSuggestion | null>;
-  /** Motivo por el que no se puede planificar (p.ej. riesgo despreciable). */
   blockedReason?: string | null;
   t: (key: string) => string;
 }
@@ -73,9 +69,6 @@ function nextMonday(from = new Date()) {
   return d;
 }
 
-// Popup "Planificar medida": se abre con el problema ya cargado (KPI,
-// calificación, observación, riesgo) y el formulario listo para describir la
-// solución; opcionalmente pide una propuesta a la IA y la vuelca al formulario.
 export function PlanMeasureDialog({
   open,
   onOpenChange,
@@ -220,7 +213,6 @@ export function PlanMeasureDialog({
             </DialogHeader>
 
             <div className="grid max-h-[70vh] grid-cols-1 overflow-y-auto md:grid-cols-[1fr_1.1fr]">
-              {/* ── Problema + IA ── */}
               <div className="space-y-5 border-b p-6 md:border-b-0 md:border-r">
                 <section>
                   <header className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-danger">
@@ -355,7 +347,6 @@ export function PlanMeasureDialog({
                 )}
               </div>
 
-              {/* ── Formulario de la medida ── */}
               <div className="space-y-4 p-6">
                 <header className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-brand-deep">
                   <Lightbulb className="h-3.5 w-3.5" />{" "}

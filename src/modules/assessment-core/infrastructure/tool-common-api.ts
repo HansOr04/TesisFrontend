@@ -8,9 +8,6 @@ import type {
   NarrativeTone,
 } from "./assessment-api";
 
-// Capacidades que las tres herramientas exponen con la misma forma: se
-// construyen por segmento de ruta ("organizational" | "capacity" | "risk").
-
 export const detectInconsistenciesFor =
   (tool: string) =>
   (
@@ -58,7 +55,6 @@ export const exportSummaryFor =
     await downloadBlobResponse(response, `${filePrefix}-${evaluationId}.xlsx`);
   };
 
-/** Alcance del Gantt del reporte; debe coincidir con el DTO del backend. */
 export type ReportGanttScope = "tool" | "organisation" | "project";
 
 export const exportSummaryPptxFor =

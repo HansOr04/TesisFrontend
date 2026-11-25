@@ -29,22 +29,16 @@ interface SectionRef {
 interface CriticalKpiPanelProps {
   criticalIndicators: AssessmentCriticalIndicator[];
   sections: SectionRef[];
-  /** Etiqueta de la sección: "Dimensión" | "Área" | "Principio". */
   sectionLabel: string;
   title: string;
   t: (key: string) => string;
   onSectionClick?: (number: number) => void;
-  /** Si se pasa, cada tarjeta ofrece "Planificar medida". */
   onPlanMeasure?: (indicator: AssessmentCriticalIndicator) => void;
-  /** Ids de indicadores que ya tienen una medida registrada. */
   indicatorsWithMeasure?: Set<string>;
 }
 
 type SortMode = "score" | "code";
 
-// Panel interactivo de KPI críticos: filtro por sección, búsqueda, orden
-// por severidad, distribución de puntajes y tarjetas expandibles con la
-// observación completa y acciones (ir a la sección, planificar medida).
 export function CriticalKpiPanel({
   criticalIndicators,
   sections,

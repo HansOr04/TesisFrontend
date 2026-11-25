@@ -10,9 +10,7 @@ async function parse<T>(response: Response, fallback: string): Promise<T> {
       const body = (await response.json()) as { message?: string | string[] };
       const m = body.message;
       message = Array.isArray(m) ? m.join(", ") : (m ?? fallback);
-    } catch {
-      /* cuerpo vacío */
-    }
+    } catch {}
     throw new HttpResponseError(response.status, message);
   }
   return (await response.json()) as T;
@@ -54,16 +52,13 @@ export async function fetchMe(token: string): Promise<MeResponse> {
   return parse<MeResponse>(response, "Sesión inválida");
 }
 
-/** Cierra la sesión en el servidor (revoca el refresh token de la cookie). */
 export async function logoutSession(): Promise<void> {
   try {
     await fetch(`${authBase}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
-  } catch {
-    /* sin red: la sesión local se cierra igual */
-  }
+  } catch {}
 }
 
 export async function fetchAuthProviders(): Promise<{

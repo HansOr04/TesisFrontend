@@ -1,10 +1,8 @@
-// Rutas del router (deben coincidir con los archivos de src/routes).
 export enum routeKeys {
   root = "/",
   login = "/login",
   loggedIn = "/_loggedin",
 
-  // Núcleo: perfiles, panel consolidado, administración
   assessment = "/_loggedin/assessments/",
   assessmentDashboard = "/_loggedin/assessments/dashboard",
   assessmentNew = "/_loggedin/assessments/new",
@@ -16,7 +14,6 @@ export enum routeKeys {
   assessmentProfileEdit = "/_loggedin/assessments/$profileId/edit",
   assessmentProfileActionPlan = "/_loggedin/assessments/$profileId/action-plan",
 
-  // Herramienta Organizativa
   organizationalTool = "/_loggedin/assessments/organizational/",
   organizationalToolEvaluationId = "/_loggedin/assessments/organizational/$evaluationId/",
   organizationalToolSummary = "/_loggedin/assessments/organizational/$evaluationId/summary",
@@ -25,7 +22,6 @@ export enum routeKeys {
   organizationalToolDimensionAnalysis = "/_loggedin/assessments/organizational/$evaluationId/dimension/$number",
   organizationalToolAdmin = "/_loggedin/assessments/organizational/admin",
 
-  // Herramienta de Capacidades
   capacityTool = "/_loggedin/assessments/capacity/",
   capacityToolEvaluationId = "/_loggedin/assessments/capacity/$evaluationId/",
   capacityToolSummary = "/_loggedin/assessments/capacity/$evaluationId/summary",
@@ -34,7 +30,6 @@ export enum routeKeys {
   capacityToolAreaAnalysis = "/_loggedin/assessments/capacity/$evaluationId/area/$number",
   capacityToolAdmin = "/_loggedin/assessments/capacity/admin",
 
-  // Herramienta de Riesgos
   riskTool = "/_loggedin/assessments/risk/",
   riskToolEvaluationId = "/_loggedin/assessments/risk/$evaluationId/",
   riskToolSummary = "/_loggedin/assessments/risk/$evaluationId/summary",

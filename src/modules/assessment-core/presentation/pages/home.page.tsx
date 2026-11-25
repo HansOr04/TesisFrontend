@@ -30,8 +30,6 @@ export function AssessmentProfilesPage() {
   const navigate = useNavigate({ from: "/assessments/" });
 
   const org = auth.organisations?.current;
-  // Elegir el evaluador responsable es del administrador; el servidor rechaza
-  // el cambio si lo intenta un evaluador.
   const canAssignEvaluator = auth.canAdminister;
 
   const queryClient = useQueryClient();
@@ -58,9 +56,6 @@ export function AssessmentProfilesPage() {
     });
   };
 
-  // Asociaciones Nivel 2 agrupan otras organizaciones (Nivel 1 o empresas)
-  // como miembros vía parentProfileId. Se muestran como acordeón para que se
-  // vea de un vistazo qué organizaciones pertenecen a cuál asociación.
   const childrenByParent = new Map<string, AssessmentOrganisationProfile[]>();
   for (const p of profiles) {
     if (!p.parentProfileId) continue;

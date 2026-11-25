@@ -11,9 +11,6 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
-// Doble confirmación antes de completar una evaluación: completarla la cierra
-// (queda en el historial en solo lectura), así que primero se muestra un
-// resumen de lo calificado y después se pide confirmar de forma explícita.
 export function CompleteEvaluationDialog({
   open,
   onOpenChange,

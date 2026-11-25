@@ -1,10 +1,5 @@
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 
-// Fábrica de queries de React Query para una herramienta de evaluación. Las
-// tres herramientas exponen la misma API de lectura, así que las claves y las
-// opciones (staleTime, enabled) se definen una sola vez. Las mutaciones de
-// cada página invalidan por clave: `invalidateEvaluation(queryClient, org, id)`.
-
 export interface ToolReadApi<
   TOverview,
   TEvaluation,
@@ -40,8 +35,8 @@ export interface ToolReadApi<
   ) => Promise<TImpact>;
 }
 
-const STALE_SHORT = 30 * 1000; // datos que cambian al evaluar
-const STALE_LONG = 5 * 60 * 1000; // plantillas
+const STALE_SHORT = 30 * 1000;
+const STALE_LONG = 5 * 60 * 1000;
 
 export function createToolQueries<
   TOverview,
@@ -121,7 +116,6 @@ export function createToolQueries<
         staleTime: STALE_SHORT,
       }),
 
-    /** Tras puntuar, completar o planificar: refresca todo lo de la evaluación. */
     invalidateEvaluation(queryClient: QueryClient, org: string, id: string) {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: keys.evaluation(org, id) }),
@@ -131,7 +125,6 @@ export function createToolQueries<
         }),
       ]);
     },
-    /** Tras crear una evaluación o editar la estructura. */
     invalidateAll(queryClient: QueryClient, org: string) {
       return queryClient.invalidateQueries({ queryKey: keys.all(org) });
     },

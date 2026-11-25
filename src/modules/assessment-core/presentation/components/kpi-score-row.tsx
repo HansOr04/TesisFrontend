@@ -7,10 +7,6 @@ import { AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { gaugeColor } from "./gauge";
 import { KpiHelpRubricButtons } from "./kpi-help-rubric-buttons";
 
-// FE3-B03: tarjeta de indicador — colapsada muestra número + nombre + descripción;
-// al expandir muestra 10 botones de calificación (1-10) y la observación
-// obligatoria (UCA-04). Sin botón de guardado individual: el padre agrega los
-// cambios de toda la dimensión y los guarda con un solo botón "Guardar".
 interface KpiScoreRowProps {
   indicatorId: string;
   number: number;
@@ -21,7 +17,6 @@ interface KpiScoreRowProps {
   scoringRubric?: string;
   score: number | null;
   observation: string;
-  /** El evaluador la marca a mano como "requiere atención", sin importar el score. */
   manualCritical: boolean;
   t: (key: string) => string;
   onChange: (
@@ -32,7 +27,6 @@ interface KpiScoreRowProps {
   ) => void;
   onImproveObservation?: () => void;
   improvingObservation?: boolean;
-  /** Evaluación completada: se ve la nota y lo registrado, sin poder cambiarlo. */
   readOnly?: boolean;
 }
 

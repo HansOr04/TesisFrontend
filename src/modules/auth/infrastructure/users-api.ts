@@ -5,7 +5,6 @@ export type AssessmentRoleCode =
   | "assessment_evaluator"
   | "assessment_viewer";
 
-/** Qué organizaciones evaluadas ve un visualizador. */
 export interface ViewerVisibility {
   allProfiles: boolean;
   profileIds: string[];
@@ -24,7 +23,6 @@ export interface OrganisationUser {
     assignmentId: string;
     code: string;
     name: string;
-    /** Solo en el rol de visualizador. */
     visibility?: ViewerVisibility;
   }[];
 }
@@ -85,7 +83,6 @@ export const removeOrganisationUser = (
     token
   );
 
-/** Define qué organizaciones evaluadas ve un usuario con rol de visualizador. */
 export const setViewerVisibility = (
   org: string,
   id: string,

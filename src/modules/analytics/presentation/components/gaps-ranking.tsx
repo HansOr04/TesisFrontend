@@ -28,9 +28,6 @@ const SORT_KEY: Record<SortKey, string> = {
   avgScore: "app.analytics.ranking.sortAvgScore",
 };
 
-// Ranking visual de brechas sistémicas: cada KPI es una fila-tarjeta con
-// barras (frecuencia crítica, prioridad), anillo de promedio, cobertura de
-// medidas y un detalle expandible con las organizaciones afectadas.
 export function GapsRanking({
   data,
   tool,

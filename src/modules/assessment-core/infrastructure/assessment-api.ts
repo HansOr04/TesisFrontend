@@ -29,9 +29,7 @@ export interface AssessmentOrganisationProfile {
   contactEmail?: string;
   contactPhone?: string;
   evaluatorId?: string;
-  /** Excluye este perfil de la vista cross-organización del Administrador. */
   confidential?: boolean;
-  /** Solo aplica si el padre es type="ASSOCIATION" y associationLevel="LEVEL_2". */
   parentProfileId?: string;
   createdAt: string;
 }
@@ -53,8 +51,6 @@ export interface CreateAssessmentProfileInput {
   legalRep?: string;
   contactEmail?: string;
   contactPhone?: string;
-  // `null` limpia explícitamente el evaluador asignado; `undefined` deja el
-  // campo sin tocar (ver UpdateAssessmentProfileDto en el server).
   evaluatorId?: string | null;
   confidential?: boolean;
   parentProfileId?: string;
@@ -68,14 +64,11 @@ export interface AssessmentIndicatorData {
   code: string;
   name: string;
   description?: string;
-  /** Qué documento/proceso concreto debe existir para este KPI. */
   helpText?: string;
-  /** Nota de calificación específica de este KPI, complementa la rúbrica genérica 1-10. */
   scoringRubric?: string;
   weight: number;
   active: boolean;
   sortOrder: number;
-  /** false cuando el evaluador marcó este KPI como "no aplica" para el perfil evaluado. */
   applicable?: boolean;
 }
 
@@ -87,7 +80,6 @@ export interface AssessmentSectionData {
   weight: number;
   sortOrder: number;
   indicators: AssessmentIndicatorData[];
-  /** false cuando el evaluador marcó esta sección como "no aplica" para el perfil evaluado. */
   applicable?: boolean;
 }
 
@@ -239,8 +231,6 @@ export interface AssessmentKpiResponseInput {
   manualCritical?: boolean;
 }
 
-// ── Perfiles de organización (RF-02, assessment-core) ───────────────────────────
-
 export async function fetchAssessmentProfiles(
   org: string,
   token?: string
@@ -257,9 +247,6 @@ export interface AssessmentAdminProfileRow {
   organisationName: string;
 }
 
-// RF-08: vista cross-organización, solo para el Administrador de plataforma
-// (isSuperAdmin). No está scoped a una organización, por eso usa el fetch
-// sin prefijo de org (igual que /organisations/user-organisations).
 export async function fetchAllAssessmentProfilesForAdmin(
   token?: string
 ): Promise<AssessmentAdminProfileRow[]> {
@@ -299,7 +286,6 @@ export async function fetchAssessmentProfile(
   );
 }
 
-/** Una medida del plan consolidado de una organización (las tres herramientas). */
 export interface ProfileActionPlanMeasure {
   id: string;
   tool: "ORGANIZATIONAL" | "CAPACITY" | "RISK";
@@ -386,8 +372,6 @@ export async function fetchAssessmentAssociationOverview(
   );
 }
 
-// ── Panel consolidado multi-herramienta (RF-07) ───────────────────────────
-
 export type AssessmentDashboardTool = "ORGANIZATIONAL" | "CAPACITY" | "RISK";
 
 export interface AssessmentDashboardFilters {
@@ -465,8 +449,6 @@ export async function exportAssessmentDashboard(
 
 export type AssessmentMeasureStatus = "PENDING" | "IN_PROGRESS" | "DONE";
 
-// ── IA y exportes comunes a las tres herramientas ───────────────────────────
-
 export interface AssessmentInconsistencyFinding {
   description: string;
   indicators: Array<{ indicatorId: string; code: string; name: string }>;
@@ -474,7 +456,6 @@ export interface AssessmentInconsistencyFinding {
 
 export type NarrativeTone = "technical" | "informative" | "formal";
 
-/** Fila del cronograma (Gantt) de medidas; común a las tres herramientas. */
 export interface AssessmentGanttItem {
   measureId: string;
   description: string;

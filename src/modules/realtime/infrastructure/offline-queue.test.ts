@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HttpResponseError } from "@/shared/lib/http-response-error";
 
-// IndexedDB no existe en jsdom: idb-keyval se reemplaza por un almacén en memoria.
 const memory = new Map<IDBValidKey, unknown>();
 vi.mock("idb-keyval", () => ({
   createStore: () => "store",

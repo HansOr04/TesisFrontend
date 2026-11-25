@@ -1,12 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { genericPostPutPatch, genericSingleFetch } from "@/shared/api/http-client";
 
-// RF-01: Assessment role assignment is a dedicated subsystem on top of the shared
-// AuthRole/AuthUserRole tables (see server/src/assessments/assessment-core/assessment-roles.*).
-// It must be used instead of the generic /auth/users/:userId/roles endpoint
-// for assessment_admin/assessment_evaluator so that the assessment-core admin permission check,
-// assessment-role.assign/revoke audit trail, and the active-evaluations revoke
-// safeguard all apply.
 export interface AssessmentUserRoleAssignment {
   id: string;
   organisation: string;

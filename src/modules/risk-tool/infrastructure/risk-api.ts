@@ -17,8 +17,6 @@ import type {
   UpdateAssessmentSectionInput,
 } from "@/modules/assessment-core/infrastructure/assessment-api";
 
-// ── Herramienta de Riesgos (RF-05/RF-06) ────────────────────────────────────────
-
 export async function fetchRiskTemplates(
   org: string,
   token?: string
@@ -236,8 +234,6 @@ export async function fetchRiskSummary(
   );
 }
 
-// ── Panel general (panel general) ─────────────────────────────────
-
 export interface RiskToolOrganisationRow {
   profile: AssessmentOrganisationProfile;
   evaluationId: string | null;
@@ -266,8 +262,6 @@ export async function fetchRiskOrganisationsOverview(
     token
   );
 }
-
-// ── Riesgos y plan de mitigación (RF-05/RF-06) ────────────────────────────
 
 export type AssessmentRiskClass = "NEGLIGIBLE" | "NON_NEGLIGIBLE";
 
@@ -387,8 +381,6 @@ export async function fetchRiskGantt(
   );
 }
 
-// ── Asistencia con IA (Risk) ──────────────────────────────────────────────
-
 export async function improveRiskObservation(
   org: string,
   evaluationId: string,
@@ -483,8 +475,6 @@ export async function fetchRiskImpactPriority(
   );
 }
 
-// ── Detección de inconsistencias + narrativa ejecutiva + exportación ───────
-
 export type {
   AssessmentInconsistencyFinding,
   NarrativeTone,
@@ -509,8 +499,6 @@ export const exportRiskMitigationPlanPptx = exportSummaryPptxFor(
   "mitigation-plan/export-pptx",
   "reporte-risk"
 );
-
-// ── Parámetros de riesgo por país (administración) ─────────────────────────
 
 export interface RiskCountryParam {
   country: string;

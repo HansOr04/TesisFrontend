@@ -8,11 +8,6 @@ interface AssessmentScoreUpdatedPayload {
   scoredBy: string;
 }
 
-// Sesión colaborativa del taller (doc ai-ssd 01 §3, 03 §7 F7a): cuando otro
-// facilitador califica un KPI de la misma evaluación, este hook recibe
-// score.updated y dispara onScoreUpdated para que el llamador refresque su
-// estado local (la app no usa TanStack Query para evaluaciones, así
-// que no hay cache que invalidar — el patrón es "avísame y yo recargo").
 export function useAssessmentSession(
   org: string | undefined,
   evaluationId: string | undefined,
@@ -28,9 +23,6 @@ export function useAssessmentSession(
   useEffect(() => {
     if (!org || !evaluationId || !token || !baseURL) return;
 
-    // baseURL puede ser relativo ("/api" con el proxy de Vite) o absoluto. El
-    // namespace del gateway es /assessments; el path de Socket.IO va bajo baseURL
-    // para que el proxy lo reenvíe al backend.
     const apiUrl = new URL(baseURL, window.location.origin);
     const socket: Socket = io(`${apiUrl.origin}/assessments`, {
       path: `${apiUrl.pathname.replace(/\/$/, "")}/socket.io`,
@@ -43,8 +35,6 @@ export function useAssessmentSession(
     });
 
     socket.on("score.updated", (payload: AssessmentScoreUpdatedPayload) => {
-      // El servidor también avisa al autor del guardado; ese eco no trae nada
-      // nuevo y solo provocaría recargar la evaluación entera tras cada guardado.
       if (payload?.scoredBy && payload.scoredBy === userIdRef.current) return;
       if (payload?.evaluationId === evaluationId) {
         callbackRef.current(payload);

@@ -143,7 +143,6 @@ export function IndicatorToolActionPlanPage({ def }: { def: IndicatorToolUi }) {
   const [suggestionsFailed, setSuggestionsFailed] = useState(false);
   const [suggestions, setSuggestions] = useState<SuggestionDraft[]>([]);
 
-  // Tras crear/actualizar medidas: refresca medidas, evaluación y panel.
   const loadData = useCallback(async () => {
     if (!org) return;
     await Promise.all([

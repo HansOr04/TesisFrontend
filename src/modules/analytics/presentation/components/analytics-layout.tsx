@@ -2,7 +2,6 @@ import { BookOpen, Calculator, Eye, Lightbulb, Search } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useTranslation } from "@/shared/i18n/i18n";
 
-/** Cabecera de una pestaña: título grande y la pregunta que responde. */
 export function TabHeader({
   title,
   question,
@@ -29,7 +28,6 @@ export function TabHeader({
   );
 }
 
-/** Bloque metodológico en tres columnas: cómo se calcula, cómo se lee, qué buscar. */
 export function MethodCard({
   compute,
   read,
@@ -84,7 +82,6 @@ export function MethodCard({
   );
 }
 
-/** Hallazgos clave numerados, en texto grande. */
 export function KeyFindings({ items }: { items: React.ReactNode[] }) {
   const { t } = useTranslation();
   const list = items.filter(Boolean);
@@ -115,7 +112,6 @@ export function KeyFindings({ items }: { items: React.ReactNode[] }) {
   );
 }
 
-/** Tarjeta de gráfico a ancho completo con guía de lectura al lado. */
 export function ChartCard({
   title,
   description,
@@ -159,7 +155,6 @@ export function ChartCard({
   );
 }
 
-/** Glosario / nota de interpretación compacta. */
 export function Note({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-dashed border-border p-4 text-sm leading-relaxed text-muted-foreground">

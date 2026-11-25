@@ -1,8 +1,3 @@
-// Simulador "¿qué pasaría si…?": recalcula el puntaje por sección y global de
-// una evaluación al fijar puntajes objetivo en algunos KPI, con la misma
-// media ponderada que usa el backend (peso de KPI dentro de la sección, peso
-// de sección en el global). Puro: sin React ni red, testeable.
-
 export interface SimIndicator {
   id: string;
   code: string;
@@ -63,7 +58,6 @@ export function simulate(
   };
 }
 
-/** Ganancia en el puntaje global por cada punto que suba el KPI (sensibilidad). */
 export function marginalGain(
   sections: SimSection[],
   indicatorId: string

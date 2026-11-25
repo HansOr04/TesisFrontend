@@ -38,10 +38,6 @@ import type {
 const TOTAL_STEPS = 4;
 const CURRENT_YEAR = new Date().getFullYear();
 
-// Si la sesión se cierra por accidente a mitad del wizard (token vencido,
-// pestaña cerrada), este borrador permite recuperar lo ya escrito al volver
-// a entrar — se guarda en localStorage, no en el servidor. Solo aplica al
-// alta (no en edición, que ya carga sus datos desde el servidor).
 interface WizardDraftSnapshot {
   type: AssessmentProfileType;
   associationLevel: AssessmentAssociationLevel;
@@ -64,14 +60,8 @@ interface WizardDraftSnapshot {
   step: number;
 }
 
-// Dígitos del número nacional cuando todavía no se eligió el país.
 const DEFAULT_PHONE_DIGITS = 9;
 
-// Código ISO 3166-1 alpha-2 (mismo formato que usa el resto del sistema, p.ej.
-// AssessmentRiskCountryParam) + prefijo telefónico + dígitos exactos del
-// número nacional (celular, sin el 0 de marcación nacional). Con 9 fijos para
-// todos no se podía registrar un celular de Colombia (10). El servidor valida
-// con la misma tabla (assessment-core/domain/contact-phone).
 interface LatamCountry {
   code: string;
   name: string;
@@ -102,7 +92,6 @@ const LATAM_COUNTRIES: LatamCountry[] = [
   { code: "VE", name: "Venezuela", dialCode: "58", phoneDigits: 10 },
 ];
 
-/** Quita cualquier prefijo "+<código> " ya presente, dejando solo dígitos. */
 function stripPhonePrefix(phone: string): string {
   return phone.replace(/^\+\d+\s*/, "").replace(/\D/g, "");
 }
@@ -207,8 +196,6 @@ function Stepper({ current }: { current: number }) {
   );
 }
 
-// El mismo asistente sirve para dar de alta y para corregir después lo que
-// se capturó: con `profileId` arranca en modo edición, precargado.
 export function AssessmentProfileWizardPage({
   profileId,
 }: { profileId?: string } = {}) {
@@ -269,8 +256,6 @@ export function AssessmentProfileWizardPage({
     new Set()
   );
 
-  // Nivel 2: cuántas organizaciones miembro hay que crear justo después de
-  // guardar la asociación (se pide una vez, al momento de elegir Nivel 2).
   const [childOrgCount, setChildOrgCount] = useState("");
   const [childCreation, setChildCreation] = useState<{
     parentId: string;
@@ -286,8 +271,6 @@ export function AssessmentProfileWizardPage({
     !phoneDigitsError;
   const step3Valid = mainProduct.trim().length > 0;
 
-  // En edición el navbar muestra de qué organización son los datos que se
-  // están tocando; en el alta todavía no hay nombre que destacar.
   useSetPageHeaderName(isEdit ? name || null : null);
 
   const isLevel2Association =
@@ -300,13 +283,9 @@ export function AssessmentProfileWizardPage({
       Number.isInteger(childOrgCountNum) &&
       childOrgCountNum >= 1);
 
-  // Solo en alta: en edición los datos vienen del servidor, no de un borrador
-  // local a medio llenar.
   const draftKey = org && !isEdit ? `new-profile:${org}` : null;
   const restoredRef = useRef(false);
 
-  // Restaura el borrador guardado (si existe) una sola vez, apenas se conoce
-  // la organización activa.
   useEffect(() => {
     if (!draftKey || restoredRef.current) return;
     restoredRef.current = true;
@@ -337,11 +316,9 @@ export function AssessmentProfileWizardPage({
         description: t("app.assessment.wizard.draftRestoredDescription"),
       });
     }
-    // Solo debe ejecutarse una vez, al montar (guardado por restoredRef).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
 
-  // Guarda el borrador en cada cambio, para sobrevivir un cierre de sesión accidental.
   useEffect(() => {
     if (!draftKey) return;
     saveDraft<WizardDraftSnapshot>(draftKey, {
@@ -417,8 +394,6 @@ export function AssessmentProfileWizardPage({
     if (isLevel2Association) setParentProfileId("");
   }, [isLevel2Association]);
 
-  // Modo edición: se cargan el perfil y su aplicabilidad antes de mostrar
-  // nada, para que el asistente arranque con lo que se guardó en el alta.
   useEffect(() => {
     if (!org || !profileId) return;
     let cancelled = false;
@@ -509,8 +484,6 @@ export function AssessmentProfileWizardPage({
     setStep(1);
   };
 
-  // En edición, `stay` guarda sin salir del formulario: se pidió en el piloto
-  // para ir guardando los datos de la organización mientras se completan.
   const handleSave = async ({ stay = false }: { stay?: boolean } = {}) => {
     if (!org || !token) return;
     setSaving(true);
@@ -542,7 +515,6 @@ export function AssessmentProfileWizardPage({
       const profile = profileId
         ? await updateAssessmentProfile(org, profileId, data, refreshedToken)
         : await createAssessmentProfile(org, data, refreshedToken);
-      // En edición se envía siempre, para que quitar exclusiones persista.
       if (
         isEdit ||
         excludedSectionIds.size > 0 ||
@@ -569,9 +541,6 @@ export function AssessmentProfileWizardPage({
         return;
       }
 
-      // Asociación Nivel 2 recién creada con miembros pendientes: en vez de
-      // salir del wizard, se reinicia el formulario para capturar cada
-      // organización miembro (nombre + datos), ya enlazada a esta asociación.
       if (!childCreation && isLevel2Association && childOrgCountNum >= 1) {
         toast({
           title: t("app.common.success"),

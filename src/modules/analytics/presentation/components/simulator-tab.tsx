@@ -73,7 +73,6 @@ export function SimulatorTab({
     if (!org || !token) return;
     LIST[tool](org, token)
       .then((list) => {
-        // Una por organización (la más reciente con respuestas).
         const seen = new Set<string>();
         const unique = list.filter((e) =>
           seen.has(e.profile.id) ? false : (seen.add(e.profile.id), true)

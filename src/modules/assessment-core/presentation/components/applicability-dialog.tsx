@@ -26,8 +26,6 @@ interface Props {
   onSaved?: () => void;
 }
 
-// Editar qué KPI aplican a una organización ya creada. Los KPI marcados como
-// "no aplica" no se exigen al completar la evaluación ni entran en el puntaje.
 export function ApplicabilityDialog({
   profile,
   open,

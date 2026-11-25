@@ -1,7 +1,3 @@
-/**
- * Lanzado por el cliente HTTP cuando el servidor responde con estado no-OK,
- * para que la UI pueda decidir por estado (p.ej. 403) sin parsear mensajes.
- */
 export class HttpResponseError extends Error {
   public readonly status: number;
   public readonly errorCode?: string;

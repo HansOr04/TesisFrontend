@@ -6,7 +6,6 @@ import {
   type AssessmentDashboardFilters,
 } from "../infrastructure/assessment-api";
 
-// Queries del núcleo (perfiles y panel consolidado).
 export const coreKeys = {
   profiles: (org: string) => ["core", org, "profiles"] as const,
   dashboard: (org: string, filters: AssessmentDashboardFilters) =>

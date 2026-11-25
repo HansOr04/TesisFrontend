@@ -61,9 +61,6 @@ const TABS: {
   },
 ];
 
-// Analítica de datos transversal: cada pestaña consume un endpoint del módulo
-// assessment-analytics del backend y genera hallazgos en texto a partir de
-// los números (los mismos que se citan en la memoria).
 export function AnalyticsPage() {
   const auth = useAuth();
   const org = auth.organisations?.current;
@@ -73,8 +70,6 @@ export function AnalyticsPage() {
   const [segmentBy, setSegmentBy] = useState<SegmentKey>("country");
   const [k, setK] = useState(3);
 
-  // Cada pestaña consulta solo cuando está activa; React Query cachea los
-  // resultados por parámetros, así cambiar de pestaña y volver es inmediato.
   const overviewQuery = useQuery({
     ...analyticsQueries.overview(org),
     enabled: Boolean(org) && tab === "overview",

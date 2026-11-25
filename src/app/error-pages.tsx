@@ -3,7 +3,6 @@ import { AlertOctagon, Compass, RotateCcw } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { useTranslation } from "@/shared/i18n/i18n";
 
-// Pantalla de error de la aplicación (errorComponent por defecto del router).
 export function AppErrorPage({
   error,
   reset,

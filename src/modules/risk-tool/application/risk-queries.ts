@@ -21,7 +21,6 @@ const base = createToolQueries("risk", {
 
 export const riskQueries = {
   ...base,
-  /** Cronograma (Gantt) de las medidas de mitigación de una evaluación. */
   gantt: (org: string | undefined, evaluationId: string) =>
     queryOptions({
       queryKey: [...base.keys.evaluation(org ?? "", evaluationId), "gantt"],
