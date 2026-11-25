@@ -1,5 +1,4 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { routeKeys } from "@/shared/config/route-keys";
 import { useAuth } from "@/modules/auth/application/auth-context";
 import { AppShell } from "@/app/app-shell";
 import { useTranslation } from "@/shared/i18n/i18n";
@@ -20,6 +19,6 @@ function LoggedInLayout() {
   return <AppShell />;
 }
 
-export const Route = createFileRoute(routeKeys.loggedIn)({
+export const Route = createFileRoute("/_loggedin")({
   component: LoggedInLayout,
 });

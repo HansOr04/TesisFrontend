@@ -7,6 +7,6 @@ function EditProfileRoute() {
   return <AssessmentProfileWizardPage profileId={profileId} />;
 }
 
-export const Route = createFileRoute(routeKeys.assessmentProfileEdit)({
+export const Route = createFileRoute("/_loggedin/assessments/$profileId/edit")({
   component: EditProfileRoute,
 });
