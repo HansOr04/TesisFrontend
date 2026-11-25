@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/modules/auth/application/auth-context";
+import { webUrl } from "@/shared/lib/web-url";
 import { useTranslation } from "@/shared/i18n/i18n";
 import { useSetPageHeaderName } from "@/shared/components/page-header-context";
 import { Button } from "@/shared/ui/button";
@@ -336,18 +337,19 @@ export function ProfileActionPlanPage() {
                                     —
                                   </span>
                                 )}
-                                {m.verificationLink &&
-                                  /^https?:\/\//i.test(m.verificationLink) && (
-                                    <a
-                                      href={m.verificationLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="mt-1 inline-flex items-center gap-1 font-semibold text-brand-deep hover:underline"
-                                    >
-                                      <Link2 className="h-3 w-3" />
-                                      {t("app.assessment.measure.openEvidence")}
-                                    </a>
-                                  )}
+                                {webUrl(m.verificationLink) && (
+                                  <a
+                                    href={
+                                      webUrl(m.verificationLink) ?? undefined
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 inline-flex items-center gap-1 font-semibold text-brand-deep hover:underline"
+                                  >
+                                    <Link2 className="h-3 w-3" />
+                                    {t("app.assessment.measure.openEvidence")}
+                                  </a>
+                                )}
                               </td>
                             </tr>
                           ))}

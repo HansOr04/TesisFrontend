@@ -147,7 +147,7 @@ export function MeasureProgressDialog({
   // y el reporte de una medida concluida.
   const missingImplemented =
     status === "DONE" && appliedImprovements.trim().length === 0;
-  const evidenceUrl = /^https?:\/\//i.test(link.trim()) ? link.trim() : null;
+  const evidenceUrl = webUrl(link);
 
   const handleSave = () =>
     onSave({
