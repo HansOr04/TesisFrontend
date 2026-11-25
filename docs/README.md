@@ -8,7 +8,7 @@ El código no lleva comentarios: todo lo que hay que saber está aquí.
 | Entender cómo está construida | [arquitectura.md](arquitectura.md) |
 | **Ampliarla** | [como-expandir.md](como-expandir.md) |
 | Saber por qué algo está hecho así | [decisiones.md](decisiones.md) |
-| Buscar un archivo, componente o función | [referencia-codigo.md](referencia-codigo.md) |
+| Buscar un archivo, componente o función | [referencia](referencia/index.md) |
 
 La del servidor (base de datos, API, reglas, despliegue y operación) está en
 [TesisProyectoBack/docs](https://github.com/HansOr04/TesisProyectoBack/tree/main/docs).
