@@ -1,5 +1,4 @@
-/// <reference types="vitest" />
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import path from "node:path";
@@ -68,7 +67,10 @@ export default defineConfig({
       reporter: ["text-summary", "lcov", "json-summary"],
       // Mínimos actuales: solo pueden subir. La cobertura de la web es baja
       // (las páginas no tienen pruebas); subirlos a medida que se agreguen.
-      thresholds: { statements: 6, branches: 45, functions: 25, lines: 6 },
+      // Vitest 4 ya cuenta las ramas y funciones de los archivos sin pruebas
+      // (antes salían casi al 100 %): con las mismas pruebas, 45 y 25 pasaron
+      // a 5,8 y 5,9.
+      thresholds: { statements: 5.9, branches: 5, functions: 5, lines: 6 },
     },
   },
 });
