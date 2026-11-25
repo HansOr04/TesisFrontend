@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { routeKeys } from "@/shared/config/route-keys";
 import { RiskEvaluationDetailPage } from "@/modules/risk-tool/presentation/pages/risk-evaluationId-list.page";
 
-export const Route = createFileRoute(routeKeys.riskToolEvaluationId)({
+export const Route = createFileRoute(
+  "/_loggedin/assessments/risk/$evaluationId/"
+)({
   component: RiskEvaluationDetailPage,
 });

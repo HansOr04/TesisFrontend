@@ -15,6 +15,8 @@ API en `http://localhost:5173` (proxy a `/api` hacia el backend en `http://local
 
 ## Despliegue (Vercel)
 
+La sesión (`/auth/*`) pasa por el dominio de la propia web: `vercel.json` la reenvía al servidor y la compilación de Vercel activa `VITE_AUTH_SAME_ORIGIN=1`. Así la cookie es propia y funciona en navegadores que bloquean las de terceros. Si cambia la URL del servidor en Heroku, hay que cambiarla también en `vercel.json`.
+
 El repo incluye `vercel.json` (build `npm run build`, output `dist`, rewrite SPA a `index.html`).
 
 1. Importa el repo en Vercel (framework: Vite, detectado automáticamente).
@@ -24,3 +26,8 @@ El repo incluye `vercel.json` (build `npm run build`, output `dist`, rewrite SPA
 Si usas Google OAuth, define también `VITE_GOOGLE_OAUTH_CLIENT_ID` (debe coincidir con `GOOGLE_OAUTH_CLIENT_ID` del backend).
 
 Las variables `VITE_*` terminan dentro del JavaScript que descarga el navegador: nunca deben llevar una clave secreta. Entornos y dónde vive cada variable: [`docs/entornos-y-secretos.md`](https://github.com/HansOr04/TesisProyectoBack/blob/main/docs/entornos-y-secretos.md) del repositorio del servidor.
+
+## Manuales
+
+- [Manual de usuario](docs/manual-usuario.md)
+- [Manual técnico](https://github.com/HansOr04/TesisProyectoBack/blob/main/docs/manual-tecnico.md)
