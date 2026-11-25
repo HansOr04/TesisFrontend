@@ -25,6 +25,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
+import { webUrl } from "@/shared/lib/web-url";
 import { cn } from "@/shared/lib/utils";
 import { scoreColor } from "@/shared/design/score-colors";
 import type { AssessmentMeasureStatus } from "@/modules/assessment-core/infrastructure/assessment-api";
